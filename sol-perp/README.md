@@ -1,7 +1,8 @@
 # Multi-asset spot vs perp (Binance)
 
-- **`index.html`** — Chart.js chart + **asset** selector (loads **`data.json`**).
-- **`data.json`** — Built by `../scripts/build_sol_perp_chart_data.py` (no API keys): **SOL, ADA, BTC, XRP, ETH** — **USDⓈ-M** + **spot** **1m** closes, **2 days** window (script paginates past the 1000-candle API limit), **funding** forward-filled per bar, per-asset **overnight bps** heuristic (`etoro_overnight_fee_bps_approx`, see disclaimer in JSON).
+- **`index.html`** — **Light green** page, **eToro** wordmark (`etoro-logo.svg`), **five stacked** charts in order **BTC → ETH → XRP → ADA → SOL** (loads **`data.json`**).
+- **`etoro-logo.svg`** — Simple green **eToro** wordmark for the header (replace with official artwork if required by brand).
+- **`data.json`** — Built by `../scripts/build_sol_perp_chart_data.py` (no API keys): **BTC, ETH, XRP, ADA, SOL** — **USDⓈ-M** + **spot** **1m** closes, **2 days** window (paginated OHLCV), **funding** per bar, per-asset **overnight bps** heuristic (see disclaimer in JSON).
 
 Regenerate data:
 

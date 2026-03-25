@@ -58,6 +58,7 @@ jobs:
           mkdir -p _site
           cp sol-perp/index.html _site/
           cp sol-perp/data.json _site/
+          cp sol-perp/etoro-logo.svg _site/
           echo "## Pages artifact" >> "$GITHUB_STEP_SUMMARY"
           ls -la _site >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"

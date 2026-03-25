@@ -2,7 +2,7 @@
 """
 Fetch public Binance spot + USDⓈ-M perp data → sol-perp/data.json (no API keys).
 
-- Assets: SOL, ADA, BTC, XRP, ETH (USDT pairs)
+- Assets: BTC, ETH, XRP, ADA, SOL (USDT pairs; this order in JSON)
 - 1-minute OHLCV, **2 calendar days** window (paginated past 1000-candle API limit)
 - Funding forward-filled per bar; per-asset overnight bps heuristic
 
@@ -34,11 +34,11 @@ WINDOW_DAYS = 2
 BATCH_LIMIT = 1000
 # (id, perp symbol, spot symbol)
 ASSETS: list[tuple[str, str, str]] = [
-    ("SOL", "SOL/USDT:USDT", "SOL/USDT"),
-    ("ADA", "ADA/USDT:USDT", "ADA/USDT"),
     ("BTC", "BTC/USDT:USDT", "BTC/USDT"),
-    ("XRP", "XRP/USDT:USDT", "XRP/USDT"),
     ("ETH", "ETH/USDT:USDT", "ETH/USDT"),
+    ("XRP", "XRP/USDT:USDT", "XRP/USDT"),
+    ("ADA", "ADA/USDT:USDT", "ADA/USDT"),
+    ("SOL", "SOL/USDT:USDT", "SOL/USDT"),
 ]
 
 FUNDING_LOOKBACK_MS = 30 * 24 * 60 * 60 * 1000

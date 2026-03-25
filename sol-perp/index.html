@@ -3,52 +3,127 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Spot vs perpetual — Binance (multi-asset)</title>
+  <title>eToro — spot vs perpetual (Binance, 1m)</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      font-family: system-ui, Segoe UI, Roboto, sans-serif;
-      background: #0f1419;
-      color: #e7e9ea;
+      --bg: #d8f0dc;
+      --bg-panel: #ecf8ee;
+      --border: #9ccc9e;
+      --text: #1b4332;
+      --muted: #2d6a4f;
     }
-    body { margin: 0; padding: 1.25rem; max-width: 1100px; margin-inline: auto; }
-    h1 { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.5rem; }
-    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
-    .toolbar label { font-size: 0.9rem; color: #c8d1dc; }
-    select {
-      background: #192734;
-      color: #e7e9ea;
-      border: 1px solid #536471;
-      border-radius: 8px;
-      padding: 0.35rem 0.75rem;
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 1.25rem 1rem 2.5rem;
+      max-width: 960px;
+      margin-inline: auto;
+      font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .brand {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem 1.5rem;
+      margin-bottom: 1rem;
+      padding: 1rem 1.25rem;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .brand img.logo {
+      height: 40px;
+      width: auto;
+      display: block;
+    }
+    .brand .tagline {
       font-size: 0.95rem;
+      color: var(--muted);
+      max-width: 36rem;
+      line-height: 1.4;
     }
-    p.meta { font-size: 0.85rem; color: #a8b5c4; margin: 0 0 1rem; line-height: 1.45; }
-    .err { background: #3d1f1f; color: #f6c8c8; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; }
-    .chart-wrap { background: #15202b; border-radius: 12px; padding: 1rem; border: 1px solid #38444d; }
-    canvas { max-height: 420px; }
-    code { font-size: 0.85em; background: #192734; padding: 0.1em 0.35em; border-radius: 4px; }
+    h1.page-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0 0 0.75rem;
+      color: var(--text);
+    }
+    p.global-meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.45;
+      margin: 0 0 1.25rem;
+    }
+    .err {
+      background: #ffebee;
+      color: #b71c1c;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ef9a9a;
+    }
+    .asset-block {
+      margin-bottom: 1.75rem;
+      padding: 1rem 1.1rem;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .asset-block h2 {
+      margin: 0 0 0.35rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #14532d;
+      letter-spacing: 0.02em;
+    }
+    p.asset-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.45;
+      margin: 0 0 0.65rem;
+    }
+    .chart-box {
+      position: relative;
+      height: 240px;
+      width: 100%;
+    }
+    code {
+      font-size: 0.85em;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
-  <h1>Spot vs USDⓈ-M perpetual — 1m closes (2 days)</h1>
-  <div class="toolbar">
-    <label for="assetPick">Asset</label>
-    <select id="assetPick" aria-label="Asset"></select>
-  </div>
-  <p class="meta" id="meta">Loading <code>data.json</code>…</p>
+  <header class="brand">
+    <img class="logo" src="etoro-logo.svg" width="200" height="44" alt="eToro" />
+    <p class="tagline">
+      Spot vs Binance USDⓈ-M perpetual (1m closes, 2 days). Funding and overnight bps are illustrative;
+      not official eToro pricing.
+    </p>
+  </header>
+
+  <h1 class="page-title">BTC · ETH · XRP · ADA · SOL</h1>
+  <p class="global-meta" id="globalMeta">Loading <code>data.json</code>…</p>
   <div id="err" class="err" style="display:none"></div>
-  <div class="chart-wrap">
-    <canvas id="chart"></canvas>
-  </div>
+  <div id="chartsRoot"></div>
 
   <script>
-    /* Lighter palette for dark background */
-    const PERP_COLOR = "#fde68a";
-    const SPOT_COLOR = "#7dd3fc";
-    const FUND_COLOR = "#e9d5ff";
-    const AXIS_SOFT = "#a8b5c4";
-    const GRID = "#2f3f4f";
+    const DISPLAY_ORDER = ["BTC", "ETH", "XRP", "ADA", "SOL"];
+
+    /* Strong contrast on light green panels */
+    const PERP_COLOR = "#b45309";
+    const SPOT_COLOR = "#0369a1";
+    const FUND_COLOR = "#6d28d9";
+    const AXIS = "#37474f";
+    const GRID = "#b0bec5";
+    const LEGEND = "#263238";
+    const TITLE_GREEN = "#1b5e20";
 
     function pctFunding(rate) {
       if (rate == null || Number.isNaN(rate)) return "—";
@@ -77,6 +152,18 @@
       ];
     }
 
+    function orderAssets(assets) {
+      const byId = Object.fromEntries(assets.map((a) => [a.id, a]));
+      const out = [];
+      DISPLAY_ORDER.forEach((id) => {
+        if (byId[id]) out.push(byId[id]);
+      });
+      assets.forEach((a) => {
+        if (!DISPLAY_ORDER.includes(a.id)) out.push(a);
+      });
+      return out;
+    }
+
     function rowPerp(r) {
       if (r.perp != null) return r.perp;
       if (r.binance != null) return r.binance;
@@ -87,65 +174,31 @@
       return r.spot != null ? r.spot : null;
     }
 
-    let chartInstance = null;
-
-    function renderMeta(globalData, asset) {
-      const meta = document.getElementById("meta");
+    function assetMetaLines(globalData, asset) {
       const symP = asset.symbol_perp || "";
       const symS = asset.symbol_spot || "";
       const latestFr = asset.latest_funding_rate;
       const latestFt = asset.latest_funding_time || "";
-      const bpsApprox = asset.etoro_overnight_fee_bps_approx;
-      const avg8h = asset.avg_funding_rate_8h;
-      const bpsNote = globalData.etoro_overnight_fee_bps_note || "";
-
-      const exFee =
-        latestFr != null && !Number.isNaN(Number(latestFr))
-          ? (Number(latestFr) * 1000).toFixed(4)
-          : null;
-
-      const tf = globalData.timeframe || "";
-      const wd = globalData.window_days != null ? globalData.window_days + "d window" : "";
-
-      meta.innerHTML =
-        "<strong>" +
-        (asset.id || "") +
-        "</strong> · " +
-        (symS && symP ? symS + " spot · " + symP + " perp" : symP || "") +
-        " · " +
-        tf +
-        (wd ? " · " + wd : "") +
-        " · " +
-        (asset.series || []).length +
-        " bars · " +
-        (globalData.generated_at || "?") +
-        "<br><strong>Latest funding rate:</strong> " +
-        pctFunding(latestFr) +
-        (latestFt ? " <code>(" + latestFt + ")</code>" : "") +
-        (exFee != null
-          ? "<br><span style=\"opacity:0.92\">Example funding on <strong>1,000 USDT</strong> long per 8h: <strong>" +
-            exFee +
-            " USDT</strong> (positive → long pays; negative → long receives).</span>"
-          : "") +
-        (bpsApprox != null && !Number.isNaN(Number(bpsApprox))
-          ? "<br><strong>eToro overnight fee (illustrative, bps/day):</strong> ~<strong>" +
-            Number(bpsApprox).toFixed(2) +
-            " bps</strong> — avg Binance 8h funding over this window" +
-            (avg8h != null
-              ? " (" + (Number(avg8h) * 100).toFixed(4) + "% / 8h mean)"
-              : "") +
-            ", ×3 for three 8h periods per day, as bps of notional." +
-            (bpsNote ? "<br><span style=\"opacity:0.85;font-size:0.82rem\">" + bpsNote + "</span>" : "")
-          : "");
+      const bps = asset.etoro_overnight_fee_bps_approx;
+      const n = (asset.series || []).length;
+      const parts = [
+        (symS && symP ? symS + " · " + symP : symP) +
+          " · " +
+          n +
+          " bars",
+        "Latest funding: " +
+          pctFunding(latestFr) +
+          (latestFt ? " (" + latestFt + ")" : ""),
+      ];
+      if (bps != null && !Number.isNaN(Number(bps))) {
+        parts.push(
+          "Overnight (illustrative): ~" + Number(bps).toFixed(2) + " bps/day"
+        );
+      }
+      return parts.join(" · ");
     }
 
-    function buildChart(globalData, asset) {
-      const canvas = document.getElementById("chart");
-      if (chartInstance) {
-        chartInstance.destroy();
-        chartInstance = null;
-      }
-
+    function buildChart(canvas, globalData, asset) {
       const series = asset.series || [];
       const tf = globalData.timeframe || "";
       const labels = series.map((r) => {
@@ -160,7 +213,7 @@
 
       const datasets = [
         {
-          label: "Perpetual close (1m)",
+          label: "Perpetual (1m)",
           data: series.map(rowPerp),
           borderColor: PERP_COLOR,
           backgroundColor: "transparent",
@@ -170,7 +223,7 @@
           yAxisID: "y",
         },
         {
-          label: "Spot close (1m)",
+          label: "Spot (1m)",
           data: series.map(rowSpot),
           borderColor: SPOT_COLOR,
           backgroundColor: "transparent",
@@ -183,7 +236,7 @@
 
       if (hasFunding) {
         datasets.push({
-          label: "Funding rate (% per 8h)",
+          label: "Funding % / 8h",
           data: series.map((r) =>
             r.funding_rate != null ? Number(r.funding_rate) * 100 : null
           ),
@@ -199,62 +252,69 @@
       const scales = {
         x: {
           ticks: {
-            color: AXIS_SOFT,
+            color: AXIS,
             maxRotation: 45,
             autoSkip: true,
-            maxTicksLimit: tf === "1m" ? 20 : 12,
+            maxTicksLimit: tf === "1m" ? 14 : 12,
+            font: { size: 10 },
           },
           grid: { color: GRID },
         },
         y: {
-          ticks: { color: AXIS_SOFT },
+          ticks: { color: AXIS, font: { size: 10 } },
           grid: { color: GRID },
-          title: { display: true, text: "Price (USDT)", color: AXIS_SOFT },
+          title: {
+            display: true,
+            text: "USDT",
+            color: AXIS,
+            font: { size: 11 },
+          },
         },
       };
 
       if (hasFunding) {
         scales.y1 = {
           position: "right",
-          ticks: { color: "#ddd6fe" },
+          ticks: { color: FUND_COLOR, font: { size: 10 } },
           grid: { drawOnChartArea: false },
           title: {
             display: true,
-            text: "Funding % per interval",
-            color: "#ddd6fe",
+            text: "Funding %",
+            color: FUND_COLOR,
+            font: { size: 11 },
           },
         };
       }
 
       const fundingDsIndex = hasFunding ? 2 : -1;
       const bpsApprox = asset.etoro_overnight_fee_bps_approx;
-      const showBpsOnChart =
+      const showTitle =
         bpsApprox != null && !Number.isNaN(Number(bpsApprox));
-      const chartTitleText = showBpsOnChart
-        ? [
-            (asset.id || "") +
-              " — overnight (illustrative): " +
-              Number(bpsApprox).toFixed(2) +
-              " bps/day",
-            "avg Binance 8h funding × 3 — not eToro official",
-          ]
-        : [];
+      const chartTitleText = showTitle
+        ? (asset.id || "") +
+          " · ~" +
+          Number(bpsApprox).toFixed(2) +
+          " bps/day (illustrative)"
+        : (asset.id || "") + " · spot vs perp";
 
-      chartInstance = new Chart(canvas, {
+      return new Chart(canvas, {
         type: "line",
         data: { labels, datasets },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           interaction: { mode: "index", intersect: false },
           plugins: {
             title: {
-              display: showBpsOnChart,
+              display: true,
               text: chartTitleText,
-              color: "#f0e6ff",
-              font: { size: 13, weight: "600" },
-              padding: { bottom: 10 },
+              color: TITLE_GREEN,
+              font: { size: 12, weight: "600" },
+              padding: { bottom: 6 },
             },
-            legend: { labels: { color: "#e7e9ea" } },
+            legend: {
+              labels: { color: LEGEND, font: { size: 11 } },
+            },
             tooltip: {
               callbacks: {
                 label: (ctx) => {
@@ -272,13 +332,6 @@
                     (v != null && !Number.isNaN(v) ? Number(v).toFixed(4) : "—")
                   );
                 },
-                afterBody: (items) => {
-                  const idx = items[0]?.dataIndex;
-                  if (idx == null) return "";
-                  const r = series[idx];
-                  if (!r || r.funding_rate == null) return "";
-                  return "Funding (raw): " + Number(r.funding_rate).toExponential(4);
-                },
               },
             },
           },
@@ -288,45 +341,83 @@
     }
 
     async function load() {
-      const meta = document.getElementById("meta");
+      const globalMeta = document.getElementById("globalMeta");
       const errBox = document.getElementById("err");
-      const pick = document.getElementById("assetPick");
+      const root = document.getElementById("chartsRoot");
       let data;
       try {
         const res = await fetch("data.json", { cache: "no-store" });
-        if (!res.ok) throw new Error("HTTP " + res.status + " — run: python scripts/build_sol_perp_chart_data.py");
+        if (!res.ok) {
+          throw new Error(
+            "HTTP " + res.status + " — run: python scripts/build_sol_perp_chart_data.py"
+          );
+        }
         data = await res.json();
       } catch (e) {
         errBox.style.display = "block";
         errBox.textContent = String(e.message || e);
-        meta.textContent = "Could not load data.json";
+        globalMeta.textContent = "Could not load data.json";
         return;
       }
 
-      const assets = normalizeAssets(data);
+      const raw = normalizeAssets(data);
+      const assets = orderAssets(raw);
       if (!assets.length) {
         errBox.style.display = "block";
         errBox.textContent = "No assets in data.json";
-        meta.textContent = "Empty dataset";
+        globalMeta.textContent = "Empty dataset";
         return;
       }
 
-      pick.innerHTML = "";
-      assets.forEach((a, i) => {
-        const opt = document.createElement("option");
-        opt.value = String(i);
-        opt.textContent = a.id || "Asset " + i;
-        pick.appendChild(opt);
+      const tf = data.timeframe || "";
+      const wd =
+        data.window_days != null ? data.window_days + "d" : "";
+      const note = data.etoro_overnight_fee_bps_note || "";
+      globalMeta.innerHTML =
+        "<code>" +
+        tf +
+        "</code>" +
+        (wd ? " · " + wd + " window" : "") +
+        " · generated <code>" +
+        (data.generated_at || "?") +
+        "</code>" +
+        (note
+          ? "<br><span style=\"font-size:0.8rem\">" + note + "</span>"
+          : "");
+
+      root.innerHTML = "";
+      const charts = [];
+
+      assets.forEach((asset) => {
+        const section = document.createElement("section");
+        section.className = "asset-block";
+
+        const h2 = document.createElement("h2");
+        h2.textContent = asset.id || "—";
+        section.appendChild(h2);
+
+        const p = document.createElement("p");
+        p.className = "asset-meta";
+        p.textContent = assetMetaLines(data, asset);
+        section.appendChild(p);
+
+        const box = document.createElement("div");
+        box.className = "chart-box";
+        const canvas = document.createElement("canvas");
+        box.appendChild(canvas);
+        section.appendChild(box);
+
+        root.appendChild(section);
+        charts.push(buildChart(canvas, data, asset));
       });
 
-      function show(i) {
-        const asset = assets[Number(i)] || assets[0];
-        renderMeta(data, asset);
-        buildChart(data, asset);
-      }
-
-      pick.onchange = () => show(pick.value);
-      show(0);
+      window.addEventListener(
+        "beforeunload",
+        () => {
+          charts.forEach((c) => c.destroy());
+        },
+        { once: true }
+      );
     }
     load();
   </script>

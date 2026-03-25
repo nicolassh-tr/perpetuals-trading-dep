@@ -49,7 +49,7 @@ Optional: set `BINANCE_TESTNET=true`, `OKX_TESTNET=true`, or `BYBIT_TESTNET=true
 
 ### SOL perpetual chart (HTML)
 
-Static chart: **SOL, ADA, BTC, XRP, ETH** — **spot** vs **USDⓈ-M perpetual** **1-minute** closes on **Binance** (**2 days**, paginated OHLCV), **funding** on the right axis, **asset** dropdown on the page.
+Static page: **eToro-branded** header (logo SVG), **light green** layout, **five stacked charts** (**BTC, ETH, XRP, ADA, SOL**) — **spot** vs **USDⓈ-M perpetual** **1-minute** closes on **Binance** (**2 days**), **funding** on the right axis.
 
 ```powershell
 python scripts/build_sol_perp_chart_data.py
