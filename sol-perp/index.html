@@ -21,7 +21,7 @@
   </style>
 </head>
 <body>
-  <h1>SOL / USDT — spot vs USDⓈ-M perpetual (hourly close)</h1>
+  <h1>SOL / USDT — spot vs USDⓈ-M perpetual (minute closes)</h1>
   <p class="meta" id="meta">Loading <code>data.json</code>…</p>
   <div id="err" class="err" style="display:none"></div>
   <div class="chart-wrap">
@@ -94,9 +94,14 @@
             (bpsNote ? "<br><span style=\"opacity:0.85;font-size:0.82rem\">" + bpsNote + "</span>" : "")
           : "");
 
-      const labels = series.map((r) =>
-        new Date(r.ts).toISOString().slice(0, 16).replace("T", " ")
-      );
+      const tf = data.timeframe || "";
+      const labels = series.map((r) => {
+        const d = new Date(r.ts);
+        if (tf === "1m" || tf.endsWith("m")) {
+          return d.toISOString().slice(5, 16).replace("T", " ");
+        }
+        return d.toISOString().slice(0, 16).replace("T", " ");
+      });
 
       const perpKey = "perp";
       const spotKey = "spot";
@@ -116,7 +121,7 @@
 
       const datasets = [
         {
-          label: "Perpetual (USDT-M)",
+          label: "Perpetual close (1m)",
           data: series.map(rowPerp),
           borderColor: PERP_COLOR,
           backgroundColor: "transparent",
@@ -126,7 +131,7 @@
           yAxisID: "y",
         },
         {
-          label: "Spot",
+          label: "Spot close (1m)",
           data: series.map(rowSpot),
           borderColor: SPOT_COLOR,
           backgroundColor: "transparent",
@@ -154,7 +159,12 @@
 
       const scales = {
         x: {
-          ticks: { color: "#8b98a5", maxRotation: 45, autoSkip: true, maxTicksLimit: 12 },
+          ticks: {
+            color: "#8b98a5",
+            maxRotation: 45,
+            autoSkip: true,
+            maxTicksLimit: (data.timeframe || "") === "1m" ? 18 : 12,
+          },
           grid: { color: "#38444d" },
         },
         y: {

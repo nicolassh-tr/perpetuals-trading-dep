@@ -2,10 +2,10 @@
 """
 Fetch public SOL data from Binance → sol-perp/data.json (no API keys):
 
-- USDⓈ-M perpetual: hourly close
-- Spot SOL/USDT: hourly close (aligned timestamps)
-- Perpetual funding rate: forward-filled onto each hour (Binance settles every 8h;
-  each bar carries the rate in effect after the latest settlement at or before that bar).
+- USDⓈ-M perpetual: minute OHLCV close (default 1m)
+- Spot SOL/USDT: same timeframe (aligned timestamps)
+- Perpetual funding rate: forward-filled onto each bar (Binance settles every 8h;
+  each bar carries the rate in effect after the latest settlement at or before that bar open).
 
 Note: GitHub-hosted Actions often get HTTP 451 from Binance (geo). The Pages workflow
 falls back to the existing committed data.json when this script fails in CI.
@@ -31,9 +31,10 @@ OUT = ROOT / "sol-perp" / "data.json"
 
 SYMBOL_PERP = "SOL/USDT:USDT"
 SYMBOL_SPOT = "SOL/USDT"
-TIMEFRAME = "1h"
-LIMIT = 168  # 7 days hourly
-# Extra lookback so the first hourly bars have a funding rate before series start.
+TIMEFRAME = "1m"
+# Binance spot klines allow max 1000 per request; keep perp/spot aligned.
+LIMIT = 1000  # 1000 minutes (~16.7 h) of 1m candles
+# Extra lookback so the first bars have a funding rate before series start.
 FUNDING_LOOKBACK_MS = 30 * 24 * 60 * 60 * 1000
 FUNDING_FETCH_LIMIT = 500
 
@@ -125,7 +126,7 @@ def main() -> int:
         "symbol_spot": SYMBOL_SPOT,
         "timeframe": TIMEFRAME,
         "venues": {"perp": "binance_usdm", "spot": "binance"},
-        "funding_interval_note": "Binance USDT-M funding settles every 8h; each bar uses the rate after the latest settlement at or before that bar open.",
+        "funding_interval_note": "Binance USDT-M funding settles every 8h; each bar uses the rate after the latest settlement at or before that bar open (same for 1m or 1h data).",
         "latest_funding_rate": float(last_fr_row["fundingRate"]) if last_fr_row else None,
         "latest_funding_time": last_fr_row.get("datetime") if last_fr_row else None,
         "avg_funding_rate_8h": avg_funding_rate_8h,
