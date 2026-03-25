@@ -1,27 +1,58 @@
 # Perpetuals Trading Dep
 
-Workspace for perpetual futures / perpetuals trading tooling, analysis, and automation.
+Workspace for **perpetual futures / perpetuals** trading tooling, analysis, and automation.
+
+Related dashboard repo (Hyperliquid vs eToro): **[hl-vs-etoro](https://github.com/nicolassh-tr/hl-vs-etoro)**.
+
+---
 
 ## Setup
 
-```bash
+```powershell
 python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
+.\.venv\Scripts\activate
+pip install -e .
 ```
 
-## Layout
+(Optional: `pip install -r requirements.txt` for extra dependencies.)
 
-- `src/` — application and library code
-- `tests/` — tests (add as needed)
-- `scripts/push-to-github.ps1` — helper to add `origin` and push `main` (after you create an empty repo on GitHub)
+Package lives under `src/perpetuals_trading_dep/`.
 
-## Push to GitHub
+---
 
-Create a new **empty** repository on GitHub (no README/license). Then from this folder:
+## Repository layout
+
+| Path | Purpose |
+|------|--------|
+| `src/perpetuals_trading_dep/` | Python package |
+| `tests/` | Tests |
+| `scripts/` | Helper scripts (e.g. Git push helper) |
+| `.github/workflows/ci.yml` | CI on `main` |
+
+---
+
+## GitHub + Databricks
+
+After you push to GitHub, pull in **Databricks Repos** (or deploy other projects with the asset bundle). See **[DATABRICKS_SYNC.md](./DATABRICKS_SYNC.md)**.
+
+---
+
+## CI / deploy notes
+
+See **[DEPLOY.md](./DEPLOY.md)**.
+
+---
+
+## Push this repo to GitHub
+
+If the remote repo does not exist yet:
+
+1. Create a new **public** repository on GitHub named **`perpetuals-trading-dep`** under **`nicolassh-tr`**, with **no** README/license (empty repo).
+2. From this folder:
 
 ```powershell
-.\scripts\push-to-github.ps1 https://github.com/YOUR_USERNAME/perpetuals-trading-dep.git
+git remote add origin https://github.com/nicolassh-tr/perpetuals-trading-dep.git
+git push -u origin main
 ```
 
-Or manually: `git remote add origin <url>` then `git push -u origin main`.
+Or use **`scripts/push-to-github.ps1`** with your repo URL.
