@@ -1,0 +1,54 @@
+# Serves sol-perp/ at https://<user>.github.io/<repo>/
+# Same pattern as hl-vs-etoro: CI builds data → _site → Pages artifact.
+# First time: Repo → Settings → Pages → Build: GitHub Actions.
+
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    # Refresh Binance OHLCV (~4×/day UTC). Remove this block for push-only updates.
+    - cron: "35 6,12,18,0 * * *"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/configure-pages@v5
+      - name: Build static site (SOL chart + Binance data)
+        run: |
+          set -e
+          pip install -e .
+          python scripts/build_sol_perp_chart_data.py
+          python -c "import json; d=json.load(open('sol-perp/data.json')); assert d.get('generated_at'); assert d.get('series'); print('data ok', d['generated_at'], len(d['series']), 'rows')"
+          mkdir -p _site
+          cp sol-perp/index.html _site/
+          cp sol-perp/data.json _site/
+          echo "## Pages artifact" >> "$GITHUB_STEP_SUMMARY"
+          ls -la _site >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**data.json bytes:** $(wc -c < _site/data.json)" >> "$GITHUB_STEP_SUMMARY"
+          echo "**generated_at prefix:** $(head -c 120 _site/data.json)" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,10 +1,8 @@
-# Refresh sol-perp/data.json (Binance USDT-M SOL perpetual OHLCV).
+# Commit sol-perp/data.json to main (optional; live Pages uses CI build in deploy-pages.yml).
 name: SOL perpetual chart data
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "35 */6 * * *"
 
 permissions:
   contents: write

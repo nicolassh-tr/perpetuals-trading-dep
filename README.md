@@ -58,7 +58,7 @@ python scripts/build_sol_perp_chart_data.py
 
 See **[sol-perp/README.md](./sol-perp/README.md)**.
 
-**Live chart:** enable **Settings → Pages → GitHub Actions**, then open  
+**Live chart:** same **GitHub Pages + Actions** setup as [hl-vs-etoro](https://github.com/nicolassh-tr/hl-vs-etoro) — see **[DEPLOY.md](./DEPLOY.md)**. Example URL:  
 **https://nicolassh-tr.github.io/perpetuals-trading-dep/**
 
 ---
@@ -72,6 +72,7 @@ See **[sol-perp/README.md](./sol-perp/README.md)**.
 | `sol-perp/` | HTML chart + `data.json` for SOL perpetual (Binance USDT-M) |
 | `scripts/` | Helper scripts (e.g. Git push helper, SOL chart data) |
 | `.github/workflows/ci.yml` | CI on `main` |
+| `.github/workflows/deploy-pages.yml` | GitHub Pages (CI-built SOL chart → `_site`) |
 
 ---
 

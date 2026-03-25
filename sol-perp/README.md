@@ -20,5 +20,5 @@ python scripts/build_sol_perp_chart_data.py
 **Live site (after Pages is enabled):**  
 **https://nicolassh-tr.github.io/perpetuals-trading-dep/**
 
-One-time setup: repo **Settings → Pages → Build and deployment → Source: GitHub Actions**.  
-Workflow: `.github/workflows/deploy-sol-perp-pages.yml` (runs on push to `sol-perp/`).
+One-time setup: repo **Settings → Pages → Build and deployment → Source: GitHub Actions** (same as [hl-vs-etoro](https://github.com/nicolassh-tr/hl-vs-etoro)).  
+Workflow: `../.github/workflows/deploy-pages.yml` — builds fresh `data.json` in CI, copies `index.html` + `data.json` to `_site`, deploys on every push to `main`, schedule, or **Run workflow**. See **`../DEPLOY.md`**.
