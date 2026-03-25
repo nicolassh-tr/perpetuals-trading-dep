@@ -1,4 +1,4 @@
-# Refresh sol-perp/data.json on GitHub (clean network → usually all 3 venues).
+# Refresh sol-perp/data.json (Binance USDT-M SOL perpetual OHLCV).
 name: SOL perpetual chart data
 
 on:

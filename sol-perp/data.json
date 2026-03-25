@@ -1,14 +1,10 @@
 {
-  "generated_at": "2026-03-25T14:56:30.058917Z",
+  "generated_at": "2026-03-25T14:59:03.150832Z",
   "symbol": "SOL/USDT:USDT",
   "timeframe": "1h",
   "venues": [
     "binance"
   ],
-  "errors": {
-    "okx": "okx GET https://www.okx.com/api/v5/public/instruments?instType=SPOT",
-    "bybit": "bybit GET https://api.bybit.com/v5/market/instruments-info?category=spot"
-  },
   "count": 168,
   "series": [
     {
@@ -681,7 +677,7 @@
     },
     {
       "ts": 1774447200000,
-      "binance": 92.09
+      "binance": 92.0
     }
   ]
 }

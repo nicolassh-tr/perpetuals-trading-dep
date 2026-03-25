@@ -49,11 +49,11 @@ Optional: set `BINANCE_TESTNET=true`, `OKX_TESTNET=true`, or `BYBIT_TESTNET=true
 
 ### SOL perpetual chart (HTML)
 
-Static chart comparing **SOL/USDT** perpetual **close** from Binance, OKX, and Bybit (aligned hourly bars).
+Static chart of **SOL/USDT** perpetual **close** on **Binance USDⓈ-M** only (hourly bars).
 
 ```powershell
 python scripts/build_sol_perp_chart_data.py
-# Open sol-perp/index.html in a browser (or serve the folder; needs data.json alongside).
+# Open sol-perp/index.html in a browser (needs data.json alongside).
 ```
 
 See **[sol-perp/README.md](./sol-perp/README.md)**.
@@ -66,7 +66,7 @@ See **[sol-perp/README.md](./sol-perp/README.md)**.
 |------|--------|
 | `src/perpetuals_trading_dep/` | Python package |
 | `tests/` | Tests |
-| `sol-perp/` | HTML chart + `data.json` for SOL perpetual 3-venue series |
+| `sol-perp/` | HTML chart + `data.json` for SOL perpetual (Binance USDT-M) |
 | `scripts/` | Helper scripts (e.g. Git push helper, SOL chart data) |
 | `.github/workflows/ci.yml` | CI on `main` |
 

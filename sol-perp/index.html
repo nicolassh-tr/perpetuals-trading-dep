@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SOL perpetual — Binance vs OKX vs Bybit</title>
+  <title>SOL perpetual — Binance USDT-M</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root {
@@ -13,8 +13,7 @@
     }
     body { margin: 0; padding: 1.25rem; max-width: 1100px; margin-inline: auto; }
     h1 { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.5rem; }
-    p.meta { font-size: 0.85rem; color: #8b98a5; margin: 0 0 0.5rem; }
-    p.warn { font-size: 0.8rem; color: #c4a35a; margin: 0 0 1rem; }
+    p.meta { font-size: 0.85rem; color: #8b98a5; margin: 0 0 1rem; }
     .err { background: #3d1f1f; color: #f6c8c8; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; }
     .chart-wrap { background: #15202b; border-radius: 12px; padding: 1rem; border: 1px solid #38444d; }
     canvas { max-height: 420px; }
@@ -22,24 +21,18 @@
   </style>
 </head>
 <body>
-  <h1>SOL / USDT perpetual — close (aligned timestamps)</h1>
+  <h1>SOL / USDT perpetual — Binance USDⓈ-M (close)</h1>
   <p class="meta" id="meta">Loading <code>data.json</code>…</p>
-  <p class="warn" id="warn" style="display:none"></p>
   <div id="err" class="err" style="display:none"></div>
   <div class="chart-wrap">
     <canvas id="chart"></canvas>
   </div>
 
   <script>
-    const colors = {
-      binance: "#f0b90b",
-      okx: "#5b8cff",
-      bybit: "#f7a600",
-    };
+    const BINANCE_COLOR = "#f0b90b";
 
     async function load() {
       const meta = document.getElementById("meta");
-      const warn = document.getElementById("warn");
       const errBox = document.getElementById("err");
       let res;
       try {
@@ -53,14 +46,7 @@
       }
       const data = await res.json();
       const series = data.series || [];
-      const venues = data.venues || [];
-      const errs = data.errors || {};
-      const errKeys = Object.keys(errs);
-      if (errKeys.length) {
-        warn.style.display = "block";
-        warn.textContent =
-          "Partial data: " + errKeys.join(", ") + " omitted — " + errKeys.map((k) => errs[k]).join(" | ");
-      }
+      const venues = data.venues || ["binance"];
 
       meta.textContent =
         (data.symbol || "") +
@@ -68,8 +54,8 @@
         (data.timeframe || "") +
         " · " +
         series.length +
-        " bars · venues: " +
-        venues.join(", ") +
+        " bars · " +
+        (venues[0] || "binance") +
         " · " +
         (data.generated_at || "?");
 
@@ -77,15 +63,18 @@
         new Date(r.ts).toISOString().slice(0, 16).replace("T", " ")
       );
 
-      const datasets = venues.map((key) => ({
-        label: key.charAt(0).toUpperCase() + key.slice(1),
-        data: series.map((r) => r[key]),
-        borderColor: colors[key] || "#8899a6",
-        backgroundColor: "transparent",
-        tension: 0.15,
-        pointRadius: 0,
-        borderWidth: 1.8,
-      }));
+      const key = venues[0] || "binance";
+      const datasets = [
+        {
+          label: "Binance USDT-M",
+          data: series.map((r) => r[key]),
+          borderColor: BINANCE_COLOR,
+          backgroundColor: "transparent",
+          tension: 0.15,
+          pointRadius: 0,
+          borderWidth: 2,
+        },
+      ];
 
       new Chart(document.getElementById("chart"), {
         type: "line",
