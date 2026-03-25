@@ -1,16 +1,13 @@
-"""Perpetuals Trading Dep — package root."""
+"""Exchange API connectors (Binance, OKX, Bybit) for perpetuals."""
 
-from perpetuals_trading_dep.exchanges import (
+from perpetuals_trading_dep.exchanges.clients import (
     ExchangeName,
     create_exchange,
     create_public_exchange,
     verify_connection,
 )
 
-__version__ = "0.2.0"
-
 __all__ = [
-    "__version__",
     "ExchangeName",
     "create_exchange",
     "create_public_exchange",

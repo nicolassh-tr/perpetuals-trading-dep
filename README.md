@@ -20,6 +20,35 @@ Package lives under `src/perpetuals_trading_dep/`.
 
 ---
 
+## Exchange APIs (Binance, OKX, Bybit)
+
+Uses **[CCXT](https://github.com/ccxt/ccxt)** for USDT-style **perpetuals / swap** markets:
+
+| Exchange | CCXT id | Notes |
+|----------|---------|--------|
+| Binance Futures | `binanceusdm` | Keys from **USDⓈ-M Futures** on [Binance API management](https://www.binance.com/en/my/settings/api-management) |
+| OKX | `okx` | API key + secret + **passphrase** |
+| Bybit | `bybit` | Linear **USDT** perpetuals |
+
+1. Copy **`.env.example`** → **`.env`** and fill keys (never commit `.env`).
+2. **Public ping** (no keys, checks server time):
+
+```powershell
+python -m perpetuals_trading_dep ping binance
+python -m perpetuals_trading_dep ping okx
+python -m perpetuals_trading_dep ping bybit
+```
+
+3. **Authenticated** ping (loads balances if permissions allow):
+
+```powershell
+python -m perpetuals_trading_dep ping binance --auth
+```
+
+Optional: set `BINANCE_TESTNET=true`, `OKX_TESTNET=true`, or `BYBIT_TESTNET=true` for sandbox endpoints.
+
+---
+
 ## Repository layout
 
 | Path | Purpose |
