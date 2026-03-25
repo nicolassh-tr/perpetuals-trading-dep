@@ -42,7 +42,15 @@ jobs:
           set -e
           python -m pip install --upgrade pip
           python -m pip install -e .
+          set +e
           python scripts/build_sol_perp_chart_data.py
+          fetch_ok=$?
+          set -e
+          if [ "$fetch_ok" -ne 0 ]; then
+            echo "::warning title=Binance blocked in CI::GitHub-hosted runners often get HTTP 451 (restricted location) from Binance futures. Publishing with the last committed sol-perp/data.json. Regenerate locally and push, or run the SOL perpetual chart data workflow from a runner/network that can reach Binance."
+          else
+            echo "Fetched fresh OHLCV from Binance."
+          fi
           python -c "import json; d=json.load(open('sol-perp/data.json')); assert d.get('generated_at'); assert d.get('series'); print('data ok', d['generated_at'], len(d['series']), 'rows')"
           mkdir -p _site
           cp sol-perp/index.html _site/

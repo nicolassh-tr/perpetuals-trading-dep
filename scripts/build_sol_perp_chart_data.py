@@ -3,6 +3,9 @@
 Fetch public SOL USDT perpetual OHLCV from Binance (USDT-M) → sol-perp/data.json
 (no API keys).
 
+Note: GitHub-hosted Actions often get HTTP 451 from Binance (geo). The Pages workflow
+falls back to the existing committed data.json when this script fails in CI.
+
 Optional: PERP_TRADING_TLS_INSECURE=1 to disable TLS verify (dev / MITM proxies only).
 
 Usage (from repo root):

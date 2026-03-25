@@ -11,14 +11,18 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Install package
-        run: pip install -e .
+        run: python -m pip install -e .
       - name: Build data.json
-        run: python scripts/build_sol_perp_chart_data.py
+        run: |
+          python scripts/build_sol_perp_chart_data.py && echo "Updated from Binance." || {
+            echo "::warning::Binance returned an error (often HTTP 451 from GitHub runners). No commit — refresh from a local machine or allowed network."
+            exit 0
+          }
       - name: Commit if changed
         uses: stefanzweifel/git-auto-commit-action@v5
         with:

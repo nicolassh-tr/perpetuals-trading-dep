@@ -33,7 +33,7 @@ Only **GitHub Free** (personal, no Pro) blocks Pages on **private** repos; in th
 The **Node.js 20 deprecation** banner in the log is usually a **warning**, not the cause of failure. Open the **first step that shows a red X** — often **Build static site** (Binance/CCXT error) or **deploy-pages** (Pages API / permissions).
 
 - **Environment `github-pages` waiting for approval:** **Settings → Environments → github-pages** — approve the deployment or relax protection rules.
-- **Binance blocked from GitHub’s IPs:** the build step errors in Python; fix network/API or adjust the fetch script; the deprecation text is unrelated.
+- **Binance HTTP 451 in CI:** Binance often blocks **GitHub-hosted** runner IPs (restricted location). The **Deploy GitHub Pages** workflow then **falls back** to the committed `sol-perp/data.json` so the site still publishes. Refresh data on a machine that can reach Binance (`python scripts/build_sol_perp_chart_data.py`) and push, or use a self-hosted Actions runner in an allowed region if you need automated fresh data.
 
 ---
 
