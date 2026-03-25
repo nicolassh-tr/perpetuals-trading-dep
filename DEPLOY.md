@@ -10,8 +10,9 @@ Same flow as **[hl-vs-etoro](https://github.com/nicolassh-tr/hl-vs-etoro)**: sta
 2. On GitHub: **Settings → Pages**.
 3. **Build and deployment → Source:** **GitHub Actions** — not “Deploy from a branch”.
 4. **Actions** → wait for **Deploy GitHub Pages** (green check), or **Run workflow** once.
-5. Site URL (example):  
-   `https://<username>.github.io/perpetuals-trading-dep/`
+5. Site URL (examples):  
+   `https://<username>.github.io/perpetuals-trading-dep/` or  
+   `https://<org>.github.io/perpetuals-trading-dep/` (organization repo)
 
 ### If `data.json` on the live URL looks like the small seed in git
 
@@ -23,7 +24,9 @@ The workflow runs on **push to `main`**, **`workflow_dispatch`**, and a **schedu
 
 ### Private repository
 
-On a **free** personal GitHub account, **GitHub Pages does not publish private repos**. Use a **public** repo, **GitHub Pro**, or host `sol-perp/` elsewhere (e.g. Cloudflare Pages, Netlify).
+**Company / Team / Enterprise** and **GitHub Pro** can use **GitHub Pages with private repos** — same steps as above (Source **GitHub Actions**, green **Deploy GitHub Pages** run). If **hl-vs-etoro** already works under your org, this repo should too once Pages is enabled and the workflow succeeds.
+
+Only **GitHub Free** (personal, no Pro) blocks Pages on **private** repos; in that case make the repo public, upgrade, or use another host.
 
 ---
 
