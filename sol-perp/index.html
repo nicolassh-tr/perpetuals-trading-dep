@@ -97,14 +97,61 @@
       padding: 0.1em 0.35em;
       border-radius: 4px;
     }
+    .dir-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-top: 0.75rem;
+    }
+    .dir-table th,
+    .dir-table td {
+      padding: 0.35rem 0.6rem;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+    .dir-table th {
+      text-align: left;
+      font-weight: 600;
+      color: var(--text);
+      background: rgba(0,0,0,0.03);
+    }
+    .dir-table td:first-child {
+      text-align: left;
+      font-weight: 500;
+    }
+    .dir-table .section-label {
+      text-align: left;
+      font-weight: 700;
+      color: #14532d;
+      padding-top: 0.5rem;
+      border-bottom: 2px solid var(--border);
+      background: transparent;
+    }
+    .pay { color: #b91c1c; }
+    .receive { color: #15803d; }
+    .neutral { color: var(--muted); }
+    .dir-table caption {
+      caption-side: top;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: #14532d;
+      padding-bottom: 0.3rem;
+    }
+    .funding-chart-box {
+      position: relative;
+      height: 180px;
+      width: 100%;
+      margin-top: 0.75rem;
+    }
   </style>
 </head>
 <body>
   <header class="brand">
     <img class="logo" src="etoro-logo.svg" width="200" height="44" alt="eToro" />
     <p class="tagline">
-      Spot vs Binance USDⓈ-M perpetual (1m closes, 2 days). Funding and overnight bps are illustrative;
-      not official eToro pricing.
+      Spot vs Binance USDⓈ-M perpetual (1m closes, 2 days). Funding costs per direction (long/short)
+      and overnight bps are illustrative; not official eToro pricing.
     </p>
   </header>
 
@@ -179,7 +226,6 @@
       const symS = asset.symbol_spot || "";
       const latestFr = asset.latest_funding_rate;
       const latestFt = asset.latest_funding_time || "";
-      const bps = asset.etoro_overnight_fee_bps_approx;
       const n = (asset.series || []).length;
       const parts = [
         (symS && symP ? symS + " · " + symP : symP) +
@@ -190,12 +236,179 @@
           pctFunding(latestFr) +
           (latestFt ? " (" + latestFt + ")" : ""),
       ];
-      if (bps != null && !Number.isNaN(Number(bps))) {
-        parts.push(
-          "Overnight (illustrative): ~" + Number(bps).toFixed(2) + " bps/day"
-        );
-      }
       return parts.join(" · ");
+    }
+
+    function fmtUsd(v) {
+      if (v == null || Number.isNaN(v)) return "—";
+      const sign = v >= 0 ? "+" : "";
+      return sign + "$" + v.toFixed(2);
+    }
+    function fmtBps(v) {
+      if (v == null || Number.isNaN(v)) return "—";
+      return v.toFixed(2) + " bps/day";
+    }
+    function fmtPct(v) {
+      if (v == null || Number.isNaN(v)) return "—";
+      return v.toFixed(2) + "%";
+    }
+    function costClass(v) {
+      if (v == null || Number.isNaN(v)) return "neutral";
+      return v > 0 ? "pay" : v < 0 ? "receive" : "neutral";
+    }
+    function payRecv(v) {
+      if (v == null || Number.isNaN(v)) return "—";
+      if (v > 0) return "Pay $" + v.toFixed(2);
+      if (v < 0) return "Receive $" + Math.abs(v).toFixed(2);
+      return "$0.00";
+    }
+
+    function buildDirectionTable(asset) {
+      const pd = asset.per_direction;
+      if (!pd) return null;
+      const l = pd.long || {};
+      const s = pd.short || {};
+      const notional = pd.notional_usd || 10000;
+      const nSet = pd.n_settlements || 0;
+      const pctPos = pd.pct_positive_funding;
+
+      const table = document.createElement("table");
+      table.className = "dir-table";
+
+      const caption = document.createElement("caption");
+      caption.textContent = "Funding per direction (" + nSet + " settlements, $" + notional.toLocaleString() + " notional)";
+      table.appendChild(caption);
+
+      const thead = document.createElement("thead");
+      thead.innerHTML = "<tr><th></th><th>Long</th><th>Short</th></tr>";
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+
+      // Binance funding section
+      const secRow = document.createElement("tr");
+      secRow.innerHTML = '<td class="section-label" colspan="3">Binance Perpetual Funding</td>';
+      tbody.appendChild(secRow);
+
+      const rows = [
+        ["Avg daily cost", fmtBps(l.avg_daily_cost_bps), fmtBps(s.avg_daily_cost_bps), l.avg_daily_cost_bps, s.avg_daily_cost_bps, false],
+        ["Annualized cost", fmtPct(l.annualized_cost_pct), fmtPct(s.annualized_cost_pct), l.annualized_cost_pct, s.annualized_cost_pct, false],
+        ["Total window cost", payRecv(l.total_funding_cost_usd), payRecv(s.total_funding_cost_usd), l.total_funding_cost_usd, s.total_funding_cost_usd, false],
+        ["Cumulative PnL", fmtUsd(l.cumulative_funding_pnl_usd), fmtUsd(s.cumulative_funding_pnl_usd), l.cumulative_funding_pnl_usd, s.cumulative_funding_pnl_usd, true],
+      ];
+      rows.forEach(([label, lVal, sVal, lNum, sNum, isPnl]) => {
+        const lClass = isPnl ? costClass(-(lNum || 0)) : costClass(lNum);
+        const sClass = isPnl ? costClass(-(sNum || 0)) : costClass(sNum);
+        const tr = document.createElement("tr");
+        tr.innerHTML =
+          "<td>" + label + "</td>" +
+          '<td class="' + lClass + '">' + lVal + "</td>" +
+          '<td class="' + sClass + '">' + sVal + "</td>";
+        tbody.appendChild(tr);
+      });
+
+      // Positive funding %
+      if (pctPos != null) {
+        const pctRow = document.createElement("tr");
+        pctRow.innerHTML =
+          "<td>Settlements with positive rate</td>" +
+          '<td class="neutral" colspan="2">' + pctPos.toFixed(1) + "% (" + nSet + " total)</td>";
+        tbody.appendChild(pctRow);
+      }
+
+      // eToro overnight section
+      const bps = asset.etoro_overnight_fee_bps_approx;
+      if (bps != null && !Number.isNaN(Number(bps))) {
+        const secRow2 = document.createElement("tr");
+        secRow2.innerHTML = '<td class="section-label" colspan="3">eToro Overnight Fee (illustrative)</td>';
+        tbody.appendChild(secRow2);
+
+        const longBps = Number(bps);
+        const shortBps = -Number(bps);
+        const eRow = document.createElement("tr");
+        eRow.innerHTML =
+          "<td>Daily overnight (≈ Binance funding)</td>" +
+          '<td class="' + costClass(longBps) + '">' + fmtBps(longBps) + "</td>" +
+          '<td class="' + costClass(-shortBps) + '">' + fmtBps(shortBps) + "</td>";
+        tbody.appendChild(eRow);
+
+        const annLong = longBps / 10000 * 365 * 100;
+        const annShort = shortBps / 10000 * 365 * 100;
+        const eAnnRow = document.createElement("tr");
+        eAnnRow.innerHTML =
+          "<td>Annualized</td>" +
+          '<td class="' + costClass(annLong) + '">' + fmtPct(annLong) + "</td>" +
+          '<td class="' + costClass(-annShort) + '">' + fmtPct(annShort) + "</td>";
+        tbody.appendChild(eAnnRow);
+      }
+
+      table.appendChild(tbody);
+      return table;
+    }
+
+    function buildFundingPnlChart(canvas, asset) {
+      const pd = asset.per_direction;
+      if (!pd || !pd.settlements || !pd.settlements.length) return null;
+      const settlements = pd.settlements;
+      const labels = settlements.map((s) => {
+        const d = new Date(s.ts);
+        return d.toISOString().slice(5, 16).replace("T", " ");
+      });
+      return new Chart(canvas, {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Long cum. PnL ($)",
+              data: settlements.map((s) => s.cum_long_pnl),
+              borderColor: "#0369a1",
+              backgroundColor: "transparent",
+              tension: 0.2,
+              pointRadius: 2,
+              borderWidth: 2,
+            },
+            {
+              label: "Short cum. PnL ($)",
+              data: settlements.map((s) => s.cum_short_pnl),
+              borderColor: "#b45309",
+              backgroundColor: "transparent",
+              tension: 0.2,
+              pointRadius: 2,
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: true,
+              text: (asset.id || "") + " — cumulative funding PnL ($" + ((pd.notional_usd || 10000)/1000) + "k notional)",
+              color: TITLE_GREEN,
+              font: { size: 11, weight: "600" },
+            },
+            legend: { labels: { color: LEGEND, font: { size: 10 } } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ctx.dataset.label + ": $" + (ctx.parsed.y != null ? ctx.parsed.y.toFixed(2) : "—"),
+              },
+            },
+          },
+          scales: {
+            x: {
+              ticks: { color: AXIS, maxRotation: 45, autoSkip: true, maxTicksLimit: 10, font: { size: 9 } },
+              grid: { color: GRID },
+            },
+            y: {
+              ticks: { color: AXIS, font: { size: 10 } },
+              grid: { color: GRID },
+              title: { display: true, text: "USD", color: AXIS, font: { size: 10 } },
+            },
+          },
+        },
+      });
     }
 
     function buildChart(canvas, globalData, asset) {
@@ -406,6 +619,19 @@
         const canvas = document.createElement("canvas");
         box.appendChild(canvas);
         section.appendChild(box);
+
+        const dirTable = buildDirectionTable(asset);
+        if (dirTable) section.appendChild(dirTable);
+
+        if (asset.per_direction && asset.per_direction.settlements && asset.per_direction.settlements.length) {
+          const fundBox = document.createElement("div");
+          fundBox.className = "funding-chart-box";
+          const fundCanvas = document.createElement("canvas");
+          fundBox.appendChild(fundCanvas);
+          section.appendChild(fundBox);
+          const fc = buildFundingPnlChart(fundCanvas, asset);
+          if (fc) charts.push(fc);
+        }
 
         root.appendChild(section);
         charts.push(buildChart(canvas, data, asset));

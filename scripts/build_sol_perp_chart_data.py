@@ -157,6 +157,83 @@ def _build_asset(
         else None
     )
 
+    # --- per-direction funding breakdown ---
+    # Each 8h settlement: longs pay rate × notional if rate > 0, receive if < 0.
+    # Shorts are the mirror: receive if rate > 0, pay if rate < 0.
+    # Only include settlements within the chart window [start_ms, end_ms].
+    seen_funding_ts: set[int] = set()
+    unique_funding_events: list[dict] = []
+    for fr_row in funding_raw:
+        ts = int(fr_row["timestamp"])
+        if ts not in seen_funding_ts and start_ms <= ts <= end_ms:
+            seen_funding_ts.add(ts)
+            unique_funding_events.append(fr_row)
+    unique_funding_events.sort(key=lambda r: int(r["timestamp"]))
+
+    settlement_rates = [float(r["fundingRate"]) for r in unique_funding_events]
+    n_settlements = len(settlement_rates)
+
+    NOTIONAL = 10_000  # USD hypothetical position
+
+    cumulative_long_pnl = 0.0
+    cumulative_short_pnl = 0.0
+    funding_settlements: list[dict] = []
+    for fr_row in unique_funding_events:
+        rate = float(fr_row["fundingRate"])
+        # Long pays +rate, short pays -rate (positive = cost, negative = income)
+        long_cost = rate * NOTIONAL
+        short_cost = -rate * NOTIONAL
+        cumulative_long_pnl -= long_cost   # PnL = -cost
+        cumulative_short_pnl -= short_cost
+        funding_settlements.append({
+            "ts": int(fr_row["timestamp"]),
+            "dt": fr_row.get("datetime", ""),
+            "rate": rate,
+            "long_cost": round(long_cost, 4),
+            "short_cost": round(short_cost, 4),
+            "cum_long_pnl": round(cumulative_long_pnl, 4),
+            "cum_short_pnl": round(cumulative_short_pnl, 4),
+        })
+
+    positive_rates = [r for r in settlement_rates if r > 0]
+    negative_rates = [r for r in settlement_rates if r < 0]
+    avg_positive_8h = (sum(positive_rates) / len(positive_rates)) if positive_rates else None
+    avg_negative_8h = (sum(negative_rates) / len(negative_rates)) if negative_rates else None
+    pct_positive = (len(positive_rates) / n_settlements * 100) if n_settlements else None
+
+    # Annualized funding cost estimate (simple, non-compounded)
+    # 3 settlements/day × 365 days
+    ann_factor = 3 * 365
+    if avg_funding_rate_8h is not None:
+        ann_long_pct = avg_funding_rate_8h * ann_factor * 100
+        ann_short_pct = -avg_funding_rate_8h * ann_factor * 100
+    else:
+        ann_long_pct = None
+        ann_short_pct = None
+
+    per_direction = {
+        "notional_usd": NOTIONAL,
+        "n_settlements": n_settlements,
+        "pct_positive_funding": round(pct_positive, 1) if pct_positive is not None else None,
+        "avg_positive_rate_8h": avg_positive_8h,
+        "avg_negative_rate_8h": avg_negative_8h,
+        "long": {
+            "label": "Long holder",
+            "total_funding_cost_usd": round(sum(r["long_cost"] for r in funding_settlements), 4),
+            "cumulative_funding_pnl_usd": round(cumulative_long_pnl, 4),
+            "avg_daily_cost_bps": round(avg_funding_rate_8h * 3 * 10_000, 2) if avg_funding_rate_8h is not None else None,
+            "annualized_cost_pct": round(ann_long_pct, 2) if ann_long_pct is not None else None,
+        },
+        "short": {
+            "label": "Short holder",
+            "total_funding_cost_usd": round(sum(r["short_cost"] for r in funding_settlements), 4),
+            "cumulative_funding_pnl_usd": round(cumulative_short_pnl, 4),
+            "avg_daily_cost_bps": round(-avg_funding_rate_8h * 3 * 10_000, 2) if avg_funding_rate_8h is not None else None,
+            "annualized_cost_pct": round(ann_short_pct, 2) if ann_short_pct is not None else None,
+        },
+        "settlements": funding_settlements,
+    }
+
     return {
         "id": asset_id,
         "symbol_perp": symbol_perp,
@@ -168,6 +245,7 @@ def _build_asset(
         "avg_funding_rate_8h": avg_funding_rate_8h,
         "binance_daily_funding_decimal_approx": binance_daily_funding_decimal_approx,
         "etoro_overnight_fee_bps_approx": etoro_overnight_fee_bps_approx,
+        "per_direction": per_direction,
     }
 
 
