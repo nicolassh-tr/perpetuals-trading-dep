@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-25T18:35:33.563014Z",
+  "generated_at": "2026-03-25T18:44:07.930423Z",
   "symbol_perp": "SOL/USDT:USDT",
   "symbol_spot": "SOL/USDT",
   "timeframe": "1h",
@@ -10,6 +10,10 @@
   "funding_interval_note": "Binance USDT-M funding settles every 8h; each bar uses the rate after the latest settlement at or before that bar open.",
   "latest_funding_rate": 9.615e-05,
   "latest_funding_time": "2026-03-25T16:00:00.013Z",
+  "avg_funding_rate_8h": -3.3880416666666665e-05,
+  "binance_daily_funding_decimal_approx": -0.00010164125,
+  "etoro_overnight_fee_bps_approx": -1.0164125,
+  "etoro_overnight_fee_bps_note": "Illustrative only: mean Binance 8h funding over this chart window \u00d7 3 (intervals/day), as bps of notional per day \u2014 not eToro pricing, schedule, or official overnight fee.",
   "count": 168,
   "series": [
     {
@@ -1016,8 +1020,8 @@
     },
     {
       "ts": 1774461600000,
-      "perp": 91.96,
-      "spot": 91.99,
+      "perp": 91.68,
+      "spot": 91.72,
       "funding_rate": 9.615e-05
     }
   ]

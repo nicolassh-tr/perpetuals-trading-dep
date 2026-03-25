@@ -58,6 +58,9 @@
       const symS = data.symbol_spot || "";
       const latestFr = data.latest_funding_rate;
       const latestFt = data.latest_funding_time || "";
+      const bpsApprox = data.etoro_overnight_fee_bps_approx;
+      const avg8h = data.avg_funding_rate_8h;
+      const bpsNote = data.etoro_overnight_fee_bps_note || "";
 
       const exFee =
         latestFr != null && !Number.isNaN(Number(latestFr))
@@ -79,6 +82,16 @@
           ? "<br><span style=\"opacity:0.9\">Example funding on <strong>1,000 USDT</strong> long per 8h: <strong>" +
             exFee +
             " USDT</strong> (positive → long pays; negative → long receives).</span>"
+          : "") +
+        (bpsApprox != null && !Number.isNaN(Number(bpsApprox))
+          ? "<br><strong>eToro overnight fee (illustrative, bps/day):</strong> ~<strong>" +
+            Number(bpsApprox).toFixed(2) +
+            " bps</strong> — avg Binance 8h funding over this window" +
+            (avg8h != null
+              ? " (" + (Number(avg8h) * 100).toFixed(4) + "% / 8h mean)"
+              : "") +
+            ", ×3 for three 8h periods per day, as bps of notional." +
+            (bpsNote ? "<br><span style=\"opacity:0.85;font-size:0.82rem\">" + bpsNote + "</span>" : "")
           : "");
 
       const labels = series.map((r) =>

@@ -1,7 +1,7 @@
 # SOL perpetual timeseries (Binance)
 
 - **`index.html`** — Chart.js chart (loads **`data.json`** next to it).
-- **`data.json`** — Built by `../scripts/build_sol_perp_chart_data.py` (no API keys): **Binance USDⓈ-M** hourly perp close, **spot** SOL/USDT hourly close (aligned), and **funding rate** forward-filled per bar (8h settlements).
+- **`data.json`** — Built by `../scripts/build_sol_perp_chart_data.py` (no API keys): **Binance USDⓈ-M** hourly perp close, **spot** SOL/USDT hourly close (aligned), **funding rate** forward-filled per bar, plus **avg 8h funding × 3 → daily bps** (`etoro_overnight_fee_bps_approx`) for rough “overnight fee in bps” comparisons (see disclaimer in JSON — not eToro’s official fee).
 
 Regenerate data:
 

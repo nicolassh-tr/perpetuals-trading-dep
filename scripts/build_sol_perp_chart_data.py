@@ -106,6 +106,19 @@ def main() -> int:
 
     last_fr_row = max(funding_raw, key=lambda r: int(r["timestamp"])) if funding_raw else None
 
+    fr_samples = [float(r["funding_rate"]) for r in series if r.get("funding_rate") is not None]
+    avg_funding_rate_8h = sum(fr_samples) / len(fr_samples) if fr_samples else None
+    # Three Binance USDT-M funding intervals per UTC day → rough daily financing rate.
+    binance_daily_funding_decimal_approx = (
+        avg_funding_rate_8h * 3 if avg_funding_rate_8h is not None else None
+    )
+    # bps of notional for that daily rate (1 bp = 0.01% = 0.0001).
+    etoro_overnight_fee_bps_approx = (
+        binance_daily_funding_decimal_approx * 10_000
+        if binance_daily_funding_decimal_approx is not None
+        else None
+    )
+
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "symbol_perp": SYMBOL_PERP,
@@ -115,6 +128,13 @@ def main() -> int:
         "funding_interval_note": "Binance USDT-M funding settles every 8h; each bar uses the rate after the latest settlement at or before that bar open.",
         "latest_funding_rate": float(last_fr_row["fundingRate"]) if last_fr_row else None,
         "latest_funding_time": last_fr_row.get("datetime") if last_fr_row else None,
+        "avg_funding_rate_8h": avg_funding_rate_8h,
+        "binance_daily_funding_decimal_approx": binance_daily_funding_decimal_approx,
+        "etoro_overnight_fee_bps_approx": etoro_overnight_fee_bps_approx,
+        "etoro_overnight_fee_bps_note": (
+            "Illustrative only: mean Binance 8h funding over this chart window × 3 (intervals/day), "
+            "as bps of notional per day — not eToro pricing, schedule, or official overnight fee."
+        ),
         "count": len(series),
         "series": series,
     }
@@ -123,7 +143,9 @@ def main() -> int:
     OUT.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     print(
         f"Wrote {OUT} ({len(series)} rows; perp+spot+funding; "
-        f"latest funding {payload['latest_funding_rate']!r} @ {payload['latest_funding_time']!r})"
+        f"latest funding {payload['latest_funding_rate']!r}; "
+        f"avg 8h {avg_funding_rate_8h!r}; "
+        f"eToro-style overnight bps (approx) {etoro_overnight_fee_bps_approx!r})"
     )
     return 0
 
