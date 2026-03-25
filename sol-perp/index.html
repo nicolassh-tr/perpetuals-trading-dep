@@ -271,6 +271,7 @@
       const notional = pd.notional_usd || 10000;
       const nSet = pd.n_settlements || 0;
       const pctPos = pd.pct_positive_funding;
+      const h24 = pd.last_24h || {};
 
       const table = document.createElement("table");
       table.className = "dir-table";
@@ -285,9 +286,45 @@
 
       const tbody = document.createElement("tbody");
 
-      // Binance funding section
+      // Last 24h overnight fee — the key row
+      if (h24.long_overnight_bps != null) {
+        const secRow24 = document.createElement("tr");
+        secRow24.innerHTML = '<td class="section-label" colspan="3">Last 24h Overnight Fee (' + (h24.n_settlements || 0) + ' settlements)</td>';
+        tbody.appendChild(secRow24);
+
+        const r24 = document.createElement("tr");
+        r24.innerHTML =
+          "<td><strong>Overnight fee (24h)</strong></td>" +
+          '<td class="' + costClass(h24.long_overnight_bps) + '"><strong>' + fmtBps(h24.long_overnight_bps) + "</strong></td>" +
+          '<td class="' + costClass(h24.short_overnight_bps) + '"><strong>' + fmtBps(h24.short_overnight_bps) + "</strong></td>";
+        tbody.appendChild(r24);
+
+        // Per-settlement breakdown
+        (h24.settlements || []).forEach(function (st) {
+          const tr = document.createElement("tr");
+          const dt = st.dt ? st.dt.slice(5, 16).replace("T", " ") : "—";
+          const bpsVal = st.rate_bps;
+          tr.innerHTML =
+            '<td style="padding-left:1.2rem;font-size:0.78rem;color:var(--muted)">' + dt + "</td>" +
+            '<td class="' + costClass(bpsVal) + '" style="font-size:0.78rem">' + (bpsVal != null ? bpsVal.toFixed(2) + " bps" : "—") + "</td>" +
+            '<td class="' + costClass(bpsVal != null ? -bpsVal : null) + '" style="font-size:0.78rem">' + (bpsVal != null ? (-bpsVal).toFixed(2) + " bps" : "—") + "</td>";
+          tbody.appendChild(tr);
+        });
+
+        // Annualized from last 24h
+        const ann24Long = h24.long_overnight_bps / 10000 * 365 * 100;
+        const ann24Short = h24.short_overnight_bps / 10000 * 365 * 100;
+        const annRow = document.createElement("tr");
+        annRow.innerHTML =
+          "<td>Annualized (last 24h)</td>" +
+          '<td class="' + costClass(ann24Long) + '">' + fmtPct(ann24Long) + "</td>" +
+          '<td class="' + costClass(ann24Short) + '">' + fmtPct(ann24Short) + "</td>";
+        tbody.appendChild(annRow);
+      }
+
+      // 2-day window section
       const secRow = document.createElement("tr");
-      secRow.innerHTML = '<td class="section-label" colspan="3">Binance Perpetual Funding</td>';
+      secRow.innerHTML = '<td class="section-label" colspan="3">2-Day Window Average</td>';
       tbody.appendChild(secRow);
 
       const rows = [
@@ -307,39 +344,12 @@
         tbody.appendChild(tr);
       });
 
-      // Positive funding %
       if (pctPos != null) {
         const pctRow = document.createElement("tr");
         pctRow.innerHTML =
           "<td>Settlements with positive rate</td>" +
           '<td class="neutral" colspan="2">' + pctPos.toFixed(1) + "% (" + nSet + " total)</td>";
         tbody.appendChild(pctRow);
-      }
-
-      // eToro overnight section
-      const bps = asset.etoro_overnight_fee_bps_approx;
-      if (bps != null && !Number.isNaN(Number(bps))) {
-        const secRow2 = document.createElement("tr");
-        secRow2.innerHTML = '<td class="section-label" colspan="3">eToro Overnight Fee (illustrative)</td>';
-        tbody.appendChild(secRow2);
-
-        const longBps = Number(bps);
-        const shortBps = -Number(bps);
-        const eRow = document.createElement("tr");
-        eRow.innerHTML =
-          "<td>Daily overnight (≈ Binance funding)</td>" +
-          '<td class="' + costClass(longBps) + '">' + fmtBps(longBps) + "</td>" +
-          '<td class="' + costClass(-shortBps) + '">' + fmtBps(shortBps) + "</td>";
-        tbody.appendChild(eRow);
-
-        const annLong = longBps / 10000 * 365 * 100;
-        const annShort = shortBps / 10000 * 365 * 100;
-        const eAnnRow = document.createElement("tr");
-        eAnnRow.innerHTML =
-          "<td>Annualized</td>" +
-          '<td class="' + costClass(annLong) + '">' + fmtPct(annLong) + "</td>" +
-          '<td class="' + costClass(-annShort) + '">' + fmtPct(annShort) + "</td>";
-        tbody.appendChild(eAnnRow);
       }
 
       table.appendChild(tbody);

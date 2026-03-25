@@ -211,12 +211,31 @@ def _build_asset(
         ann_long_pct = None
         ann_short_pct = None
 
+    # --- last 24h overnight fee (3 most recent settlements) ---
+    cutoff_24h = end_ms - 24 * 60 * 60 * 1000
+    last_24h_events = [e for e in unique_funding_events if int(e["timestamp"]) >= cutoff_24h]
+    last_24h_rates = [float(e["fundingRate"]) for e in last_24h_events]
+    last_24h_sum = sum(last_24h_rates) if last_24h_rates else 0.0
+    last_24h_long_bps = round(last_24h_sum * 10_000, 2)
+    last_24h_short_bps = round(-last_24h_sum * 10_000, 2)
+    last_24h_detail = [
+        {"dt": e.get("datetime", ""), "rate": float(e["fundingRate"]),
+         "rate_bps": round(float(e["fundingRate"]) * 10_000, 4)}
+        for e in last_24h_events
+    ]
+
     per_direction = {
         "notional_usd": NOTIONAL,
         "n_settlements": n_settlements,
         "pct_positive_funding": round(pct_positive, 1) if pct_positive is not None else None,
         "avg_positive_rate_8h": avg_positive_8h,
         "avg_negative_rate_8h": avg_negative_8h,
+        "last_24h": {
+            "n_settlements": len(last_24h_events),
+            "long_overnight_bps": last_24h_long_bps,
+            "short_overnight_bps": last_24h_short_bps,
+            "settlements": last_24h_detail,
+        },
         "long": {
             "label": "Long holder",
             "total_funding_cost_usd": round(sum(r["long_cost"] for r in funding_settlements), 4),

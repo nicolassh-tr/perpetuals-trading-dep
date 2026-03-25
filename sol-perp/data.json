@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-25T19:49:47.824760Z",
+  "generated_at": "2026-03-25T19:55:41.871021Z",
   "timeframe": "1m",
   "window_days": 2,
   "venues": {
@@ -15,42 +15,6 @@
       "symbol_spot": "BTC/USDT",
       "count": 2880,
       "series": [
-        {
-          "ts": 1774295400000,
-          "perp": 70747.5,
-          "spot": 70780.25,
-          "funding_rate": 1.6e-06
-        },
-        {
-          "ts": 1774295460000,
-          "perp": 70718.4,
-          "spot": 70749.99,
-          "funding_rate": 1.6e-06
-        },
-        {
-          "ts": 1774295520000,
-          "perp": 70754.7,
-          "spot": 70785.92,
-          "funding_rate": 1.6e-06
-        },
-        {
-          "ts": 1774295580000,
-          "perp": 70726.4,
-          "spot": 70754.51,
-          "funding_rate": 1.6e-06
-        },
-        {
-          "ts": 1774295640000,
-          "perp": 70740.0,
-          "spot": 70769.45,
-          "funding_rate": 1.6e-06
-        },
-        {
-          "ts": 1774295700000,
-          "perp": 70687.1,
-          "spot": 70719.0,
-          "funding_rate": 1.6e-06
-        },
         {
           "ts": 1774295760000,
           "perp": 70652.1,
@@ -17291,35 +17255,93 @@
         },
         {
           "ts": 1774468140000,
-          "perp": 70914.8,
-          "spot": 70946.99,
+          "perp": 70910.8,
+          "spot": 70939.54,
+          "funding_rate": 4.721e-05
+        },
+        {
+          "ts": 1774468200000,
+          "perp": 70960.6,
+          "spot": 70993.9,
+          "funding_rate": 4.721e-05
+        },
+        {
+          "ts": 1774468260000,
+          "perp": 70900.1,
+          "spot": 70937.23,
+          "funding_rate": 4.721e-05
+        },
+        {
+          "ts": 1774468320000,
+          "perp": 70882.0,
+          "spot": 70916.72,
+          "funding_rate": 4.721e-05
+        },
+        {
+          "ts": 1774468380000,
+          "perp": 70874.9,
+          "spot": 70904.2,
+          "funding_rate": 4.721e-05
+        },
+        {
+          "ts": 1774468440000,
+          "perp": 70866.3,
+          "spot": 70892.74,
+          "funding_rate": 4.721e-05
+        },
+        {
+          "ts": 1774468500000,
+          "perp": 70833.3,
+          "spot": 70850.05,
           "funding_rate": 4.721e-05
         }
       ],
       "latest_funding_rate": 4.721e-05,
       "latest_funding_time": "2026-03-25T16:00:00.013Z",
-      "avg_funding_rate_8h": 2.7805284722222218e-05,
-      "binance_daily_funding_decimal_approx": 8.341585416666665e-05,
-      "etoro_overnight_fee_bps_approx": 0.8341585416666665,
+      "avg_funding_rate_8h": 2.7900305555555556e-05,
+      "binance_daily_funding_decimal_approx": 8.370091666666667e-05,
+      "etoro_overnight_fee_bps_approx": 0.8370091666666667,
       "per_direction": {
         "notional_usd": 10000,
         "n_settlements": 6,
         "pct_positive_funding": 100.0,
         "avg_positive_rate_8h": 3.1775e-05,
         "avg_negative_rate_8h": null,
+        "last_24h": {
+          "n_settlements": 3,
+          "long_overnight_bps": 0.81,
+          "short_overnight_bps": -0.81,
+          "settlements": [
+            {
+              "dt": "2026-03-25T00:00:00.000Z",
+              "rate": 2.31e-05,
+              "rate_bps": 0.231
+            },
+            {
+              "dt": "2026-03-25T08:00:00.000Z",
+              "rate": 1.074e-05,
+              "rate_bps": 0.1074
+            },
+            {
+              "dt": "2026-03-25T16:00:00.013Z",
+              "rate": 4.721e-05,
+              "rate_bps": 0.4721
+            }
+          ]
+        },
         "long": {
           "label": "Long holder",
           "total_funding_cost_usd": 1.9065,
           "cumulative_funding_pnl_usd": -1.9065,
-          "avg_daily_cost_bps": 0.83,
-          "annualized_cost_pct": 3.04
+          "avg_daily_cost_bps": 0.84,
+          "annualized_cost_pct": 3.06
         },
         "short": {
           "label": "Short holder",
           "total_funding_cost_usd": -1.9065,
           "cumulative_funding_pnl_usd": 1.9065,
-          "avg_daily_cost_bps": -0.83,
-          "annualized_cost_pct": -3.04
+          "avg_daily_cost_bps": -0.84,
+          "annualized_cost_pct": -3.06
         },
         "settlements": [
           {
@@ -17385,42 +17407,6 @@
       "symbol_spot": "ETH/USDT",
       "count": 2880,
       "series": [
-        {
-          "ts": 1774295400000,
-          "perp": 2154.58,
-          "spot": 2155.45,
-          "funding_rate": 6.11e-05
-        },
-        {
-          "ts": 1774295460000,
-          "perp": 2154.5,
-          "spot": 2155.5,
-          "funding_rate": 6.11e-05
-        },
-        {
-          "ts": 1774295520000,
-          "perp": 2156.66,
-          "spot": 2157.36,
-          "funding_rate": 6.11e-05
-        },
-        {
-          "ts": 1774295580000,
-          "perp": 2155.08,
-          "spot": 2155.9,
-          "funding_rate": 6.11e-05
-        },
-        {
-          "ts": 1774295640000,
-          "perp": 2155.26,
-          "spot": 2156.03,
-          "funding_rate": 6.11e-05
-        },
-        {
-          "ts": 1774295700000,
-          "perp": 2153.39,
-          "spot": 2154.19,
-          "funding_rate": 6.11e-05
-        },
         {
           "ts": 1774295760000,
           "perp": 2152.81,
@@ -34661,35 +34647,93 @@
         },
         {
           "ts": 1774468140000,
-          "perp": 2171.21,
-          "spot": 2172.0,
+          "perp": 2170.78,
+          "spot": 2171.86,
+          "funding_rate": 5.27e-06
+        },
+        {
+          "ts": 1774468200000,
+          "perp": 2173.03,
+          "spot": 2174.18,
+          "funding_rate": 5.27e-06
+        },
+        {
+          "ts": 1774468260000,
+          "perp": 2171.42,
+          "spot": 2172.56,
+          "funding_rate": 5.27e-06
+        },
+        {
+          "ts": 1774468320000,
+          "perp": 2171.05,
+          "spot": 2172.11,
+          "funding_rate": 5.27e-06
+        },
+        {
+          "ts": 1774468380000,
+          "perp": 2171.18,
+          "spot": 2172.1,
+          "funding_rate": 5.27e-06
+        },
+        {
+          "ts": 1774468440000,
+          "perp": 2171.04,
+          "spot": 2172.13,
+          "funding_rate": 5.27e-06
+        },
+        {
+          "ts": 1774468500000,
+          "perp": 2169.59,
+          "spot": 2170.49,
           "funding_rate": 5.27e-06
         }
       ],
       "latest_funding_rate": 5.27e-06,
       "latest_funding_time": "2026-03-25T16:00:00.013Z",
-      "avg_funding_rate_8h": 8.545065972222221e-06,
-      "binance_daily_funding_decimal_approx": 2.5635197916666665e-05,
-      "etoro_overnight_fee_bps_approx": 0.25635197916666663,
+      "avg_funding_rate_8h": 8.428753472222221e-06,
+      "binance_daily_funding_decimal_approx": 2.5286260416666663e-05,
+      "etoro_overnight_fee_bps_approx": 0.2528626041666666,
       "per_direction": {
         "notional_usd": 10000,
         "n_settlements": 6,
         "pct_positive_funding": 66.7,
         "avg_positive_rate_8h": 2.26725e-05,
         "avg_negative_rate_8h": -3.425e-05,
+        "last_24h": {
+          "n_settlements": 3,
+          "long_overnight_bps": -0.01,
+          "short_overnight_bps": 0.01,
+          "settlements": [
+            {
+              "dt": "2026-03-25T00:00:00.000Z",
+              "rate": 3.54e-05,
+              "rate_bps": 0.354
+            },
+            {
+              "dt": "2026-03-25T08:00:00.000Z",
+              "rate": -4.168e-05,
+              "rate_bps": -0.4168
+            },
+            {
+              "dt": "2026-03-25T16:00:00.013Z",
+              "rate": 5.27e-06,
+              "rate_bps": 0.0527
+            }
+          ]
+        },
         "long": {
           "label": "Long holder",
           "total_funding_cost_usd": 0.2219,
           "cumulative_funding_pnl_usd": -0.2219,
-          "avg_daily_cost_bps": 0.26,
-          "annualized_cost_pct": 0.94
+          "avg_daily_cost_bps": 0.25,
+          "annualized_cost_pct": 0.92
         },
         "short": {
           "label": "Short holder",
           "total_funding_cost_usd": -0.2219,
           "cumulative_funding_pnl_usd": 0.2219,
-          "avg_daily_cost_bps": -0.26,
-          "annualized_cost_pct": -0.94
+          "avg_daily_cost_bps": -0.25,
+          "annualized_cost_pct": -0.92
         },
         "settlements": [
           {
@@ -34755,42 +34799,6 @@
       "symbol_spot": "XRP/USDT",
       "count": 2880,
       "series": [
-        {
-          "ts": 1774295400000,
-          "perp": 1.4356,
-          "spot": 1.4363,
-          "funding_rate": -4.575e-05
-        },
-        {
-          "ts": 1774295460000,
-          "perp": 1.4356,
-          "spot": 1.4363,
-          "funding_rate": -4.575e-05
-        },
-        {
-          "ts": 1774295520000,
-          "perp": 1.4363,
-          "spot": 1.437,
-          "funding_rate": -4.575e-05
-        },
-        {
-          "ts": 1774295580000,
-          "perp": 1.4357,
-          "spot": 1.4363,
-          "funding_rate": -4.575e-05
-        },
-        {
-          "ts": 1774295640000,
-          "perp": 1.4353,
-          "spot": 1.4361,
-          "funding_rate": -4.575e-05
-        },
-        {
-          "ts": 1774295700000,
-          "perp": 1.4342,
-          "spot": 1.4349,
-          "funding_rate": -4.575e-05
-        },
         {
           "ts": 1774295760000,
           "perp": 1.4341,
@@ -52031,22 +52039,80 @@
         },
         {
           "ts": 1774468140000,
+          "perp": 1.4112,
+          "spot": 1.4121,
+          "funding_rate": -2.97e-05
+        },
+        {
+          "ts": 1774468200000,
+          "perp": 1.4125,
+          "spot": 1.4134,
+          "funding_rate": -2.97e-05
+        },
+        {
+          "ts": 1774468260000,
+          "perp": 1.4111,
+          "spot": 1.4121,
+          "funding_rate": -2.97e-05
+        },
+        {
+          "ts": 1774468320000,
           "perp": 1.4114,
           "spot": 1.4123,
+          "funding_rate": -2.97e-05
+        },
+        {
+          "ts": 1774468380000,
+          "perp": 1.4102,
+          "spot": 1.411,
+          "funding_rate": -2.97e-05
+        },
+        {
+          "ts": 1774468440000,
+          "perp": 1.4098,
+          "spot": 1.4109,
+          "funding_rate": -2.97e-05
+        },
+        {
+          "ts": 1774468500000,
+          "perp": 1.4098,
+          "spot": 1.4107,
           "funding_rate": -2.97e-05
         }
       ],
       "latest_funding_rate": -2.97e-05,
       "latest_funding_time": "2026-03-25T16:00:00.013Z",
-      "avg_funding_rate_8h": -1.9026430555555554e-05,
-      "binance_daily_funding_decimal_approx": -5.707929166666666e-05,
-      "etoro_overnight_fee_bps_approx": -0.5707929166666666,
+      "avg_funding_rate_8h": -1.8992993055555556e-05,
+      "binance_daily_funding_decimal_approx": -5.697897916666667e-05,
+      "etoro_overnight_fee_bps_approx": -0.5697897916666667,
       "per_direction": {
         "notional_usd": 10000,
         "n_settlements": 6,
         "pct_positive_funding": 50.0,
         "avg_positive_rate_8h": 3.749e-05,
         "avg_negative_rate_8h": -7.287666666666667e-05,
+        "last_24h": {
+          "n_settlements": 3,
+          "long_overnight_bps": -0.89,
+          "short_overnight_bps": 0.89,
+          "settlements": [
+            {
+              "dt": "2026-03-25T00:00:00.000Z",
+              "rate": -9.143e-05,
+              "rate_bps": -0.9143
+            },
+            {
+              "dt": "2026-03-25T08:00:00.000Z",
+              "rate": 3.239e-05,
+              "rate_bps": 0.3239
+            },
+            {
+              "dt": "2026-03-25T16:00:00.013Z",
+              "rate": -2.97e-05,
+              "rate_bps": -0.297
+            }
+          ]
+        },
         "long": {
           "label": "Long holder",
           "total_funding_cost_usd": -1.0616,
@@ -52125,42 +52191,6 @@
       "symbol_spot": "ADA/USDT",
       "count": 2880,
       "series": [
-        {
-          "ts": 1774295400000,
-          "perp": 0.261,
-          "spot": 0.2611,
-          "funding_rate": 2.444e-05
-        },
-        {
-          "ts": 1774295460000,
-          "perp": 0.2609,
-          "spot": 0.2611,
-          "funding_rate": 2.444e-05
-        },
-        {
-          "ts": 1774295520000,
-          "perp": 0.261,
-          "spot": 0.2611,
-          "funding_rate": 2.444e-05
-        },
-        {
-          "ts": 1774295580000,
-          "perp": 0.2609,
-          "spot": 0.2609,
-          "funding_rate": 2.444e-05
-        },
-        {
-          "ts": 1774295640000,
-          "perp": 0.2609,
-          "spot": 0.2611,
-          "funding_rate": 2.444e-05
-        },
-        {
-          "ts": 1774295700000,
-          "perp": 0.2608,
-          "spot": 0.2609,
-          "funding_rate": 2.444e-05
-        },
         {
           "ts": 1774295760000,
           "perp": 0.2608,
@@ -69401,35 +69431,93 @@
         },
         {
           "ts": 1774468140000,
-          "perp": 0.2708,
+          "perp": 0.2707,
+          "spot": 0.2707,
+          "funding_rate": 0.0001
+        },
+        {
+          "ts": 1774468200000,
+          "perp": 0.271,
+          "spot": 0.271,
+          "funding_rate": 0.0001
+        },
+        {
+          "ts": 1774468260000,
+          "perp": 0.2706,
           "spot": 0.2708,
+          "funding_rate": 0.0001
+        },
+        {
+          "ts": 1774468320000,
+          "perp": 0.2707,
+          "spot": 0.2708,
+          "funding_rate": 0.0001
+        },
+        {
+          "ts": 1774468380000,
+          "perp": 0.2706,
+          "spot": 0.2706,
+          "funding_rate": 0.0001
+        },
+        {
+          "ts": 1774468440000,
+          "perp": 0.2705,
+          "spot": 0.2706,
+          "funding_rate": 0.0001
+        },
+        {
+          "ts": 1774468500000,
+          "perp": 0.2704,
+          "spot": 0.2705,
           "funding_rate": 0.0001
         }
       ],
       "latest_funding_rate": 0.0001,
       "latest_funding_time": "2026-03-25T16:00:00.013Z",
-      "avg_funding_rate_8h": 4.941590972222223e-05,
-      "binance_daily_funding_decimal_approx": 0.0001482477291666667,
-      "etoro_overnight_fee_bps_approx": 1.4824772916666669,
+      "avg_funding_rate_8h": 4.9573326388888885e-05,
+      "binance_daily_funding_decimal_approx": 0.00014871997916666665,
+      "etoro_overnight_fee_bps_approx": 1.4871997916666666,
       "per_direction": {
         "notional_usd": 10000,
         "n_settlements": 6,
         "pct_positive_funding": 66.7,
         "avg_positive_rate_8h": 9.305000000000001e-05,
         "avg_negative_rate_8h": -1.821e-05,
+        "last_24h": {
+          "n_settlements": 3,
+          "long_overnight_bps": 3.0,
+          "short_overnight_bps": -3.0,
+          "settlements": [
+            {
+              "dt": "2026-03-25T00:00:00.000Z",
+              "rate": 0.0001,
+              "rate_bps": 1.0
+            },
+            {
+              "dt": "2026-03-25T08:00:00.000Z",
+              "rate": 0.0001,
+              "rate_bps": 1.0
+            },
+            {
+              "dt": "2026-03-25T16:00:00.013Z",
+              "rate": 0.0001,
+              "rate_bps": 1.0
+            }
+          ]
+        },
         "long": {
           "label": "Long holder",
           "total_funding_cost_usd": 3.3578,
           "cumulative_funding_pnl_usd": -3.3578,
-          "avg_daily_cost_bps": 1.48,
-          "annualized_cost_pct": 5.41
+          "avg_daily_cost_bps": 1.49,
+          "annualized_cost_pct": 5.43
         },
         "short": {
           "label": "Short holder",
           "total_funding_cost_usd": -3.3578,
           "cumulative_funding_pnl_usd": 3.3578,
-          "avg_daily_cost_bps": -1.48,
-          "annualized_cost_pct": -5.41
+          "avg_daily_cost_bps": -1.49,
+          "annualized_cost_pct": -5.43
         },
         "settlements": [
           {
@@ -69495,42 +69583,6 @@
       "symbol_spot": "SOL/USDT",
       "count": 2880,
       "series": [
-        {
-          "ts": 1774295400000,
-          "perp": 91.42,
-          "spot": 91.46,
-          "funding_rate": 4.974e-05
-        },
-        {
-          "ts": 1774295460000,
-          "perp": 91.36,
-          "spot": 91.38,
-          "funding_rate": 4.974e-05
-        },
-        {
-          "ts": 1774295520000,
-          "perp": 91.39,
-          "spot": 91.43,
-          "funding_rate": 4.974e-05
-        },
-        {
-          "ts": 1774295580000,
-          "perp": 91.34,
-          "spot": 91.37,
-          "funding_rate": 4.974e-05
-        },
-        {
-          "ts": 1774295640000,
-          "perp": 91.34,
-          "spot": 91.37,
-          "funding_rate": 4.974e-05
-        },
-        {
-          "ts": 1774295700000,
-          "perp": 91.29,
-          "spot": 91.34,
-          "funding_rate": 4.974e-05
-        },
         {
           "ts": 1774295760000,
           "perp": 91.28,
@@ -86771,35 +86823,93 @@
         },
         {
           "ts": 1774468140000,
+          "perp": 91.69,
+          "spot": 91.73,
+          "funding_rate": 9.615e-05
+        },
+        {
+          "ts": 1774468200000,
+          "perp": 91.75,
+          "spot": 91.79,
+          "funding_rate": 9.615e-05
+        },
+        {
+          "ts": 1774468260000,
           "perp": 91.68,
           "spot": 91.72,
+          "funding_rate": 9.615e-05
+        },
+        {
+          "ts": 1774468320000,
+          "perp": 91.66,
+          "spot": 91.69,
+          "funding_rate": 9.615e-05
+        },
+        {
+          "ts": 1774468380000,
+          "perp": 91.65,
+          "spot": 91.67,
+          "funding_rate": 9.615e-05
+        },
+        {
+          "ts": 1774468440000,
+          "perp": 91.64,
+          "spot": 91.67,
+          "funding_rate": 9.615e-05
+        },
+        {
+          "ts": 1774468500000,
+          "perp": 91.55,
+          "spot": 91.6,
           "funding_rate": 9.615e-05
         }
       ],
       "latest_funding_rate": 9.615e-05,
       "latest_funding_time": "2026-03-25T16:00:00.013Z",
-      "avg_funding_rate_8h": 1.8434052083333333e-05,
-      "binance_daily_funding_decimal_approx": 5.530215625e-05,
-      "etoro_overnight_fee_bps_approx": 0.5530215625,
+      "avg_funding_rate_8h": 1.8530739583333334e-05,
+      "binance_daily_funding_decimal_approx": 5.559221875e-05,
+      "etoro_overnight_fee_bps_approx": 0.5559221875,
       "per_direction": {
         "notional_usd": 10000,
         "n_settlements": 6,
         "pct_positive_funding": 66.7,
         "avg_positive_rate_8h": 7.265e-05,
         "avg_negative_rate_8h": -7.8025e-05,
+        "last_24h": {
+          "n_settlements": 3,
+          "long_overnight_bps": 1.17,
+          "short_overnight_bps": -1.17,
+          "settlements": [
+            {
+              "dt": "2026-03-25T00:00:00.000Z",
+              "rate": -4.578e-05,
+              "rate_bps": -0.4578
+            },
+            {
+              "dt": "2026-03-25T08:00:00.000Z",
+              "rate": 6.687e-05,
+              "rate_bps": 0.6687
+            },
+            {
+              "dt": "2026-03-25T16:00:00.013Z",
+              "rate": 9.615e-05,
+              "rate_bps": 0.9615
+            }
+          ]
+        },
         "long": {
           "label": "Long holder",
           "total_funding_cost_usd": 1.3455,
           "cumulative_funding_pnl_usd": -1.3455,
-          "avg_daily_cost_bps": 0.55,
-          "annualized_cost_pct": 2.02
+          "avg_daily_cost_bps": 0.56,
+          "annualized_cost_pct": 2.03
         },
         "short": {
           "label": "Short holder",
           "total_funding_cost_usd": -1.3455,
           "cumulative_funding_pnl_usd": 1.3455,
-          "avg_daily_cost_bps": -0.55,
-          "annualized_cost_pct": -2.02
+          "avg_daily_cost_bps": -0.56,
+          "annualized_cost_pct": -2.03
         },
         "settlements": [
           {
