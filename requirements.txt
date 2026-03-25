@@ -1,0 +1,1 @@
+# Perpetuals Trading Dep — add pinned deps as the project grows
