@@ -28,6 +28,13 @@ The workflow runs on **push to `main`**, **`workflow_dispatch`**, and a **schedu
 
 Only **GitHub Free** (personal, no Pro) blocks Pages on **private** repos; in that case make the repo public, upgrade, or use another host.
 
+### Workflow failed (red “deploy” / exit code 1)
+
+The **Node.js 20 deprecation** banner in the log is usually a **warning**, not the cause of failure. Open the **first step that shows a red X** — often **Build static site** (Binance/CCXT error) or **deploy-pages** (Pages API / permissions).
+
+- **Environment `github-pages` waiting for approval:** **Settings → Environments → github-pages** — approve the deployment or relax protection rules.
+- **Binance blocked from GitHub’s IPs:** the build step errors in Python; fix network/API or adjust the fetch script; the deprecation text is unrelated.
+
 ---
 
 ## Optional: commit `data.json` back to `main`
