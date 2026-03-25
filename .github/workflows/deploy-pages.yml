@@ -31,6 +31,8 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -61,6 +63,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "**data.json bytes:** $(wc -c < _site/data.json)" >> "$GITHUB_STEP_SUMMARY"
           echo "**generated_at prefix:** $(head -c 120 _site/data.json)" >> "$GITHUB_STEP_SUMMARY"
+      # Composite pins upload-artifact@… (node20) — may still log a deprecation until GitHub updates it.
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site

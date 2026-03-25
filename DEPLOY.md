@@ -32,6 +32,8 @@ Only **GitHub Free** (personal, no Pro) blocks Pages on **private** repos; in th
 
 The **Node.js 20 deprecation** banner in the log is usually a **warning**, not the cause of failure. Open the **first step that shows a red X** — often **Build static site** (Binance/CCXT error) or **deploy-pages** (Pages API / permissions).
 
+**Banner still says `checkout@v4` / `setup-python@v5` / `configure-pages@v5`?** That text matches an **older** workflow revision. On the run page, check which **commit** the workflow used (`main` should be recent). In the repo, **Deploy GitHub Pages** on current `main` uses `checkout@v6`, `setup-python@v6`, and **pinned SHAs** for configure/deploy-pages (Node 24). You may still see a separate notice from **`upload-pages-artifact`** (it bundles an `upload-artifact` build that still declares Node 20 until GitHub ships an update).
+
 - **Environment `github-pages` waiting for approval:** **Settings → Environments → github-pages** — approve the deployment or relax protection rules.
 - **Binance HTTP 451 in CI:** Binance often blocks **GitHub-hosted** runner IPs (restricted location). The **Deploy GitHub Pages** workflow then **falls back** to the committed `sol-perp/data.json` so the site still publishes. Refresh data on a machine that can reach Binance (`python scripts/build_sol_perp_chart_data.py`) and push, or use a self-hosted Actions runner in an allowed region if you need automated fresh data.
 
