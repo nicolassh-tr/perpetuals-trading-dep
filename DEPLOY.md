@@ -4,7 +4,7 @@ Same flow as **[hl-vs-etoro](https://github.com/nicolassh-tr/hl-vs-etoro)**: sta
 
 ---
 
-## GitHub Pages (SOL chart)
+## GitHub Pages (spot vs perp chart)
 
 1. Code is on `main` with `.github/workflows/deploy-pages.yml`.
 2. On GitHub: **Settings → Pages**.

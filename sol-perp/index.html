@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SOL spot vs perpetual — Binance</title>
+  <title>Spot vs perpetual — Binance (multi-asset)</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root {
@@ -13,7 +13,17 @@
     }
     body { margin: 0; padding: 1.25rem; max-width: 1100px; margin-inline: auto; }
     h1 { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.5rem; }
-    p.meta { font-size: 0.85rem; color: #8b98a5; margin: 0 0 1rem; line-height: 1.45; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .toolbar label { font-size: 0.9rem; color: #c8d1dc; }
+    select {
+      background: #192734;
+      color: #e7e9ea;
+      border: 1px solid #536471;
+      border-radius: 8px;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.95rem;
+    }
+    p.meta { font-size: 0.85rem; color: #a8b5c4; margin: 0 0 1rem; line-height: 1.45; }
     .err { background: #3d1f1f; color: #f6c8c8; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; }
     .chart-wrap { background: #15202b; border-radius: 12px; padding: 1rem; border: 1px solid #38444d; }
     canvas { max-height: 420px; }
@@ -21,7 +31,11 @@
   </style>
 </head>
 <body>
-  <h1>SOL / USDT — spot vs USDⓈ-M perpetual (minute closes)</h1>
+  <h1>Spot vs USDⓈ-M perpetual — 1m closes (2 days)</h1>
+  <div class="toolbar">
+    <label for="assetPick">Asset</label>
+    <select id="assetPick" aria-label="Asset"></select>
+  </div>
   <p class="meta" id="meta">Loading <code>data.json</code>…</p>
   <div id="err" class="err" style="display:none"></div>
   <div class="chart-wrap">
@@ -29,57 +43,87 @@
   </div>
 
   <script>
-    const PERP_COLOR = "#f0b90b";
-    const SPOT_COLOR = "#2dd4bf";
-    const FUND_COLOR = "#c084fc";
+    /* Lighter palette for dark background */
+    const PERP_COLOR = "#fde68a";
+    const SPOT_COLOR = "#7dd3fc";
+    const FUND_COLOR = "#e9d5ff";
+    const AXIS_SOFT = "#a8b5c4";
+    const GRID = "#2f3f4f";
 
     function pctFunding(rate) {
       if (rate == null || Number.isNaN(rate)) return "—";
       return (Number(rate) * 100).toFixed(4) + "% / 8h";
     }
 
-    async function load() {
-      const meta = document.getElementById("meta");
-      const errBox = document.getElementById("err");
-      let res;
-      try {
-        res = await fetch("data.json", { cache: "no-store" });
-        if (!res.ok) throw new Error("HTTP " + res.status + " — run: python scripts/build_sol_perp_chart_data.py");
-      } catch (e) {
-        errBox.style.display = "block";
-        errBox.textContent = String(e.message || e);
-        meta.textContent = "Could not load data.json";
-        return;
-      }
-      const data = await res.json();
-      const series = data.series || [];
+    function normalizeAssets(data) {
+      if (Array.isArray(data.assets) && data.assets.length > 0) return data.assets;
+      const s = data.series || [];
+      if (!s.length) return [];
+      const idGuess =
+        (data.symbol_spot && data.symbol_spot.split("/")[0]) ||
+        (data.symbol_perp && data.symbol_perp.split("/")[0]) ||
+        "SOL";
+      return [
+        {
+          id: idGuess,
+          symbol_perp: data.symbol_perp,
+          symbol_spot: data.symbol_spot,
+          series: s,
+          latest_funding_rate: data.latest_funding_rate,
+          latest_funding_time: data.latest_funding_time,
+          avg_funding_rate_8h: data.avg_funding_rate_8h,
+          etoro_overnight_fee_bps_approx: data.etoro_overnight_fee_bps_approx,
+        },
+      ];
+    }
 
-      const symP = data.symbol_perp || data.symbol || "";
-      const symS = data.symbol_spot || "";
-      const latestFr = data.latest_funding_rate;
-      const latestFt = data.latest_funding_time || "";
-      const bpsApprox = data.etoro_overnight_fee_bps_approx;
-      const avg8h = data.avg_funding_rate_8h;
-      const bpsNote = data.etoro_overnight_fee_bps_note || "";
+    function rowPerp(r) {
+      if (r.perp != null) return r.perp;
+      if (r.binance != null) return r.binance;
+      return null;
+    }
+
+    function rowSpot(r) {
+      return r.spot != null ? r.spot : null;
+    }
+
+    let chartInstance = null;
+
+    function renderMeta(globalData, asset) {
+      const meta = document.getElementById("meta");
+      const symP = asset.symbol_perp || "";
+      const symS = asset.symbol_spot || "";
+      const latestFr = asset.latest_funding_rate;
+      const latestFt = asset.latest_funding_time || "";
+      const bpsApprox = asset.etoro_overnight_fee_bps_approx;
+      const avg8h = asset.avg_funding_rate_8h;
+      const bpsNote = globalData.etoro_overnight_fee_bps_note || "";
 
       const exFee =
         latestFr != null && !Number.isNaN(Number(latestFr))
           ? (Number(latestFr) * 1000).toFixed(4)
           : null;
 
+      const tf = globalData.timeframe || "";
+      const wd = globalData.window_days != null ? globalData.window_days + "d window" : "";
+
       meta.innerHTML =
-        (symP && symS ? symS + " spot · " + symP + " perp" : symP || "SOL") +
+        "<strong>" +
+        (asset.id || "") +
+        "</strong> · " +
+        (symS && symP ? symS + " spot · " + symP + " perp" : symP || "") +
         " · " +
-        (data.timeframe || "") +
+        tf +
+        (wd ? " · " + wd : "") +
         " · " +
-        series.length +
+        (asset.series || []).length +
         " bars · " +
-        (data.generated_at || "?") +
+        (globalData.generated_at || "?") +
         "<br><strong>Latest funding rate:</strong> " +
         pctFunding(latestFr) +
         (latestFt ? " <code>(" + latestFt + ")</code>" : "") +
         (exFee != null
-          ? "<br><span style=\"opacity:0.9\">Example funding on <strong>1,000 USDT</strong> long per 8h: <strong>" +
+          ? "<br><span style=\"opacity:0.92\">Example funding on <strong>1,000 USDT</strong> long per 8h: <strong>" +
             exFee +
             " USDT</strong> (positive → long pays; negative → long receives).</span>"
           : "") +
@@ -93,29 +137,24 @@
             ", ×3 for three 8h periods per day, as bps of notional." +
             (bpsNote ? "<br><span style=\"opacity:0.85;font-size:0.82rem\">" + bpsNote + "</span>" : "")
           : "");
+    }
 
-      const tf = data.timeframe || "";
+    function buildChart(globalData, asset) {
+      const canvas = document.getElementById("chart");
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+
+      const series = asset.series || [];
+      const tf = globalData.timeframe || "";
       const labels = series.map((r) => {
         const d = new Date(r.ts);
-        if (tf === "1m" || tf.endsWith("m")) {
+        if (tf === "1m") {
           return d.toISOString().slice(5, 16).replace("T", " ");
         }
         return d.toISOString().slice(0, 16).replace("T", " ");
       });
-
-      const perpKey = "perp";
-      const spotKey = "spot";
-
-      function rowPerp(r) {
-        if (r[perpKey] != null) return r[perpKey];
-        if (r.binance != null) return r.binance;
-        return null;
-      }
-
-      function rowSpot(r) {
-        if (r[spotKey] != null) return r[spotKey];
-        return null;
-      }
 
       const hasFunding = series.some((r) => r.funding_rate != null);
 
@@ -160,46 +199,48 @@
       const scales = {
         x: {
           ticks: {
-            color: "#8b98a5",
+            color: AXIS_SOFT,
             maxRotation: 45,
             autoSkip: true,
-            maxTicksLimit: (data.timeframe || "") === "1m" ? 18 : 12,
+            maxTicksLimit: tf === "1m" ? 20 : 12,
           },
-          grid: { color: "#38444d" },
+          grid: { color: GRID },
         },
         y: {
-          ticks: { color: "#8b98a5" },
-          grid: { color: "#38444d" },
-          title: { display: true, text: "Price (USDT)", color: "#8b98a5" },
+          ticks: { color: AXIS_SOFT },
+          grid: { color: GRID },
+          title: { display: true, text: "Price (USDT)", color: AXIS_SOFT },
         },
       };
+
       if (hasFunding) {
         scales.y1 = {
           position: "right",
-          ticks: { color: "#c4b5fd" },
+          ticks: { color: "#ddd6fe" },
           grid: { drawOnChartArea: false },
           title: {
             display: true,
             text: "Funding % per interval",
-            color: "#c4b5fd",
+            color: "#ddd6fe",
           },
         };
       }
 
       const fundingDsIndex = hasFunding ? 2 : -1;
-
+      const bpsApprox = asset.etoro_overnight_fee_bps_approx;
       const showBpsOnChart =
         bpsApprox != null && !Number.isNaN(Number(bpsApprox));
       const chartTitleText = showBpsOnChart
         ? [
-            "Overnight fee (illustrative): " +
+            (asset.id || "") +
+              " — overnight (illustrative): " +
               Number(bpsApprox).toFixed(2) +
               " bps/day",
             "avg Binance 8h funding × 3 — not eToro official",
           ]
         : [];
 
-      new Chart(document.getElementById("chart"), {
+      chartInstance = new Chart(canvas, {
         type: "line",
         data: { labels, datasets },
         options: {
@@ -209,7 +250,7 @@
             title: {
               display: showBpsOnChart,
               text: chartTitleText,
-              color: "#c4b5fd",
+              color: "#f0e6ff",
               font: { size: 13, weight: "600" },
               padding: { bottom: 10 },
             },
@@ -244,6 +285,48 @@
           scales,
         },
       });
+    }
+
+    async function load() {
+      const meta = document.getElementById("meta");
+      const errBox = document.getElementById("err");
+      const pick = document.getElementById("assetPick");
+      let data;
+      try {
+        const res = await fetch("data.json", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status + " — run: python scripts/build_sol_perp_chart_data.py");
+        data = await res.json();
+      } catch (e) {
+        errBox.style.display = "block";
+        errBox.textContent = String(e.message || e);
+        meta.textContent = "Could not load data.json";
+        return;
+      }
+
+      const assets = normalizeAssets(data);
+      if (!assets.length) {
+        errBox.style.display = "block";
+        errBox.textContent = "No assets in data.json";
+        meta.textContent = "Empty dataset";
+        return;
+      }
+
+      pick.innerHTML = "";
+      assets.forEach((a, i) => {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = a.id || "Asset " + i;
+        pick.appendChild(opt);
+      });
+
+      function show(i) {
+        const asset = assets[Number(i)] || assets[0];
+        renderMeta(data, asset);
+        buildChart(data, asset);
+      }
+
+      pick.onchange = () => show(pick.value);
+      show(0);
     }
     load();
   </script>
