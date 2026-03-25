@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SOL perpetual — Binance vs OKX vs Bybit</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      font-family: system-ui, Segoe UI, Roboto, sans-serif;
+      background: #0f1419;
+      color: #e7e9ea;
+    }
+    body { margin: 0; padding: 1.25rem; max-width: 1100px; margin-inline: auto; }
+    h1 { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.5rem; }
+    p.meta { font-size: 0.85rem; color: #8b98a5; margin: 0 0 0.5rem; }
+    p.warn { font-size: 0.8rem; color: #c4a35a; margin: 0 0 1rem; }
+    .err { background: #3d1f1f; color: #f6c8c8; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; }
+    .chart-wrap { background: #15202b; border-radius: 12px; padding: 1rem; border: 1px solid #38444d; }
+    canvas { max-height: 420px; }
+    code { font-size: 0.85em; background: #192734; padding: 0.1em 0.35em; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>SOL / USDT perpetual — close (aligned timestamps)</h1>
+  <p class="meta" id="meta">Loading <code>data.json</code>…</p>
+  <p class="warn" id="warn" style="display:none"></p>
+  <div id="err" class="err" style="display:none"></div>
+  <div class="chart-wrap">
+    <canvas id="chart"></canvas>
+  </div>
+
+  <script>
+    const colors = {
+      binance: "#f0b90b",
+      okx: "#5b8cff",
+      bybit: "#f7a600",
+    };
+
+    async function load() {
+      const meta = document.getElementById("meta");
+      const warn = document.getElementById("warn");
+      const errBox = document.getElementById("err");
+      let res;
+      try {
+        res = await fetch("data.json", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status + " — run: python scripts/build_sol_perp_chart_data.py");
+      } catch (e) {
+        errBox.style.display = "block";
+        errBox.textContent = String(e.message || e);
+        meta.textContent = "Could not load data.json";
+        return;
+      }
+      const data = await res.json();
+      const series = data.series || [];
+      const venues = data.venues || [];
+      const errs = data.errors || {};
+      const errKeys = Object.keys(errs);
+      if (errKeys.length) {
+        warn.style.display = "block";
+        warn.textContent =
+          "Partial data: " + errKeys.join(", ") + " omitted — " + errKeys.map((k) => errs[k]).join(" | ");
+      }
+
+      meta.textContent =
+        (data.symbol || "") +
+        " · " +
+        (data.timeframe || "") +
+        " · " +
+        series.length +
+        " bars · venues: " +
+        venues.join(", ") +
+        " · " +
+        (data.generated_at || "?");
+
+      const labels = series.map((r) =>
+        new Date(r.ts).toISOString().slice(0, 16).replace("T", " ")
+      );
+
+      const datasets = venues.map((key) => ({
+        label: key.charAt(0).toUpperCase() + key.slice(1),
+        data: series.map((r) => r[key]),
+        borderColor: colors[key] || "#8899a6",
+        backgroundColor: "transparent",
+        tension: 0.15,
+        pointRadius: 0,
+        borderWidth: 1.8,
+      }));
+
+      new Chart(document.getElementById("chart"), {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { labels: { color: "#e7e9ea" } },
+            tooltip: {
+              callbacks: {
+                label: (ctx) =>
+                  ctx.dataset.label +
+                  ": " +
+                  (ctx.parsed.y != null ? Number(ctx.parsed.y).toFixed(4) : "—"),
+              },
+            },
+          },
+          scales: {
+            x: {
+              ticks: { color: "#8b98a5", maxRotation: 45, autoSkip: true, maxTicksLimit: 12 },
+              grid: { color: "#38444d" },
+            },
+            y: {
+              ticks: { color: "#8b98a5" },
+              grid: { color: "#38444d" },
+              title: { display: true, text: "Close (USDT)", color: "#8b98a5" },
+            },
+          },
+        },
+      });
+    }
+    load();
+  </script>
+</body>
+</html>

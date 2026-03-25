@@ -47,6 +47,17 @@ python -m perpetuals_trading_dep ping binance --auth
 
 Optional: set `BINANCE_TESTNET=true`, `OKX_TESTNET=true`, or `BYBIT_TESTNET=true` for sandbox endpoints.
 
+### SOL perpetual chart (HTML)
+
+Static chart comparing **SOL/USDT** perpetual **close** from Binance, OKX, and Bybit (aligned hourly bars).
+
+```powershell
+python scripts/build_sol_perp_chart_data.py
+# Open sol-perp/index.html in a browser (or serve the folder; needs data.json alongside).
+```
+
+See **[sol-perp/README.md](./sol-perp/README.md)**.
+
 ---
 
 ## Repository layout
@@ -55,7 +66,8 @@ Optional: set `BINANCE_TESTNET=true`, `OKX_TESTNET=true`, or `BYBIT_TESTNET=true
 |------|--------|
 | `src/perpetuals_trading_dep/` | Python package |
 | `tests/` | Tests |
-| `scripts/` | Helper scripts (e.g. Git push helper) |
+| `sol-perp/` | HTML chart + `data.json` for SOL perpetual 3-venue series |
+| `scripts/` | Helper scripts (e.g. Git push helper, SOL chart data) |
 | `.github/workflows/ci.yml` | CI on `main` |
 
 ---
