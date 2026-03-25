@@ -17,4 +17,8 @@ $env:PERP_TRADING_TLS_INSECURE="1"
 python scripts/build_sol_perp_chart_data.py
 ```
 
-**GitHub Pages:** enable Pages on branch `main`, folder **`/sol-perp`**.
+**Live site (after Pages is enabled):**  
+**https://nicolassh-tr.github.io/perpetuals-trading-dep/**
+
+One-time setup: repo **Settings → Pages → Build and deployment → Source: GitHub Actions**.  
+Workflow: `.github/workflows/deploy-sol-perp-pages.yml` (runs on push to `sol-perp/`).

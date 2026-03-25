@@ -58,6 +58,9 @@ python scripts/build_sol_perp_chart_data.py
 
 See **[sol-perp/README.md](./sol-perp/README.md)**.
 
+**Live chart:** enable **Settings → Pages → GitHub Actions**, then open  
+**https://nicolassh-tr.github.io/perpetuals-trading-dep/**
+
 ---
 
 ## Repository layout
