@@ -54,7 +54,7 @@ jobs:
           else
             echo "Fetched fresh OHLCV from Binance."
           fi
-          python -c "import json; d=json.load(open('sol-perp/data.json')); assert d.get('generated_at'); assert d.get('series'); print('data ok', d['generated_at'], len(d['series']), 'rows')"
+          python -c "import json; d=json.load(open('sol-perp/data.json')); s=d.get('series') or []; r0=s[0]; assert d.get('generated_at') and s and r0.get('perp') is not None and r0.get('spot') is not None; print('data ok', d['generated_at'], len(s), 'rows')"
           mkdir -p _site
           cp sol-perp/index.html _site/
           cp sol-perp/data.json _site/

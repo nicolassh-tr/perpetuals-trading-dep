@@ -1,7 +1,7 @@
 # SOL perpetual timeseries (Binance)
 
 - **`index.html`** — Chart.js chart (loads **`data.json`** next to it).
-- **`data.json`** — Built by `../scripts/build_sol_perp_chart_data.py` (public OHLCV from **Binance USDT-M** only, no API keys).
+- **`data.json`** — Built by `../scripts/build_sol_perp_chart_data.py` (no API keys): **Binance USDⓈ-M** hourly perp close, **spot** SOL/USDT hourly close (aligned), and **funding rate** forward-filled per bar (8h settlements).
 
 Regenerate data:
 

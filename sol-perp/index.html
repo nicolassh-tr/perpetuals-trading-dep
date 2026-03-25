@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SOL perpetual — Binance USDT-M</title>
+  <title>SOL spot vs perpetual — Binance</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root {
@@ -13,7 +13,7 @@
     }
     body { margin: 0; padding: 1.25rem; max-width: 1100px; margin-inline: auto; }
     h1 { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.5rem; }
-    p.meta { font-size: 0.85rem; color: #8b98a5; margin: 0 0 1rem; }
+    p.meta { font-size: 0.85rem; color: #8b98a5; margin: 0 0 1rem; line-height: 1.45; }
     .err { background: #3d1f1f; color: #f6c8c8; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; }
     .chart-wrap { background: #15202b; border-radius: 12px; padding: 1rem; border: 1px solid #38444d; }
     canvas { max-height: 420px; }
@@ -21,7 +21,7 @@
   </style>
 </head>
 <body>
-  <h1>SOL / USDT perpetual — Binance USDⓈ-M (close)</h1>
+  <h1>SOL / USDT — spot vs USDⓈ-M perpetual (hourly close)</h1>
   <p class="meta" id="meta">Loading <code>data.json</code>…</p>
   <div id="err" class="err" style="display:none"></div>
   <div class="chart-wrap">
@@ -29,7 +29,14 @@
   </div>
 
   <script>
-    const BINANCE_COLOR = "#f0b90b";
+    const PERP_COLOR = "#f0b90b";
+    const SPOT_COLOR = "#2dd4bf";
+    const FUND_COLOR = "#c084fc";
+
+    function pctFunding(rate) {
+      if (rate == null || Number.isNaN(rate)) return "—";
+      return (Number(rate) * 100).toFixed(4) + "% / 8h";
+    }
 
     async function load() {
       const meta = document.getElementById("meta");
@@ -46,35 +53,117 @@
       }
       const data = await res.json();
       const series = data.series || [];
-      const venues = data.venues || ["binance"];
 
-      meta.textContent =
-        (data.symbol || "") +
+      const symP = data.symbol_perp || data.symbol || "";
+      const symS = data.symbol_spot || "";
+      const latestFr = data.latest_funding_rate;
+      const latestFt = data.latest_funding_time || "";
+
+      const exFee =
+        latestFr != null && !Number.isNaN(Number(latestFr))
+          ? (Number(latestFr) * 1000).toFixed(4)
+          : null;
+
+      meta.innerHTML =
+        (symP && symS ? symS + " spot · " + symP + " perp" : symP || "SOL") +
         " · " +
         (data.timeframe || "") +
         " · " +
         series.length +
         " bars · " +
-        (venues[0] || "binance") +
-        " · " +
-        (data.generated_at || "?");
+        (data.generated_at || "?") +
+        "<br><strong>Latest funding rate:</strong> " +
+        pctFunding(latestFr) +
+        (latestFt ? " <code>(" + latestFt + ")</code>" : "") +
+        (exFee != null
+          ? "<br><span style=\"opacity:0.9\">Example funding on <strong>1,000 USDT</strong> long per 8h: <strong>" +
+            exFee +
+            " USDT</strong> (positive → long pays; negative → long receives).</span>"
+          : "");
 
       const labels = series.map((r) =>
         new Date(r.ts).toISOString().slice(0, 16).replace("T", " ")
       );
 
-      const key = venues[0] || "binance";
+      const perpKey = "perp";
+      const spotKey = "spot";
+
+      function rowPerp(r) {
+        if (r[perpKey] != null) return r[perpKey];
+        if (r.binance != null) return r.binance;
+        return null;
+      }
+
+      function rowSpot(r) {
+        if (r[spotKey] != null) return r[spotKey];
+        return null;
+      }
+
+      const hasFunding = series.some((r) => r.funding_rate != null);
+
       const datasets = [
         {
-          label: "Binance USDT-M",
-          data: series.map((r) => r[key]),
-          borderColor: BINANCE_COLOR,
+          label: "Perpetual (USDT-M)",
+          data: series.map(rowPerp),
+          borderColor: PERP_COLOR,
           backgroundColor: "transparent",
           tension: 0.15,
           pointRadius: 0,
           borderWidth: 2,
+          yAxisID: "y",
+        },
+        {
+          label: "Spot",
+          data: series.map(rowSpot),
+          borderColor: SPOT_COLOR,
+          backgroundColor: "transparent",
+          tension: 0.15,
+          pointRadius: 0,
+          borderWidth: 2,
+          yAxisID: "y",
         },
       ];
+
+      if (hasFunding) {
+        datasets.push({
+          label: "Funding rate (% per 8h)",
+          data: series.map((r) =>
+            r.funding_rate != null ? Number(r.funding_rate) * 100 : null
+          ),
+          borderColor: FUND_COLOR,
+          backgroundColor: "transparent",
+          stepped: "before",
+          pointRadius: 0,
+          borderWidth: 1.5,
+          yAxisID: "y1",
+        });
+      }
+
+      const scales = {
+        x: {
+          ticks: { color: "#8b98a5", maxRotation: 45, autoSkip: true, maxTicksLimit: 12 },
+          grid: { color: "#38444d" },
+        },
+        y: {
+          ticks: { color: "#8b98a5" },
+          grid: { color: "#38444d" },
+          title: { display: true, text: "Price (USDT)", color: "#8b98a5" },
+        },
+      };
+      if (hasFunding) {
+        scales.y1 = {
+          position: "right",
+          ticks: { color: "#c4b5fd" },
+          grid: { drawOnChartArea: false },
+          title: {
+            display: true,
+            text: "Funding % per interval",
+            color: "#c4b5fd",
+          },
+        };
+      }
+
+      const fundingDsIndex = hasFunding ? 2 : -1;
 
       new Chart(document.getElementById("chart"), {
         type: "line",
@@ -86,24 +175,32 @@
             legend: { labels: { color: "#e7e9ea" } },
             tooltip: {
               callbacks: {
-                label: (ctx) =>
-                  ctx.dataset.label +
-                  ": " +
-                  (ctx.parsed.y != null ? Number(ctx.parsed.y).toFixed(4) : "—"),
+                label: (ctx) => {
+                  const v = ctx.parsed.y;
+                  if (fundingDsIndex >= 0 && ctx.datasetIndex === fundingDsIndex) {
+                    return (
+                      ctx.dataset.label +
+                      ": " +
+                      (v != null && !Number.isNaN(v) ? v.toFixed(4) + "%" : "—")
+                    );
+                  }
+                  return (
+                    ctx.dataset.label +
+                    ": " +
+                    (v != null && !Number.isNaN(v) ? Number(v).toFixed(4) : "—")
+                  );
+                },
+                afterBody: (items) => {
+                  const idx = items[0]?.dataIndex;
+                  if (idx == null) return "";
+                  const r = series[idx];
+                  if (!r || r.funding_rate == null) return "";
+                  return "Funding (raw): " + Number(r.funding_rate).toExponential(4);
+                },
               },
             },
           },
-          scales: {
-            x: {
-              ticks: { color: "#8b98a5", maxRotation: 45, autoSkip: true, maxTicksLimit: 12 },
-              grid: { color: "#38444d" },
-            },
-            y: {
-              ticks: { color: "#8b98a5" },
-              grid: { color: "#38444d" },
-              title: { display: true, text: "Close (USDT)", color: "#8b98a5" },
-            },
-          },
+          scales,
         },
       });
     }

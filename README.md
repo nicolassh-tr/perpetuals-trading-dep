@@ -49,7 +49,7 @@ Optional: set `BINANCE_TESTNET=true`, `OKX_TESTNET=true`, or `BYBIT_TESTNET=true
 
 ### SOL perpetual chart (HTML)
 
-Static chart of **SOL/USDT** perpetual **close** on **Binance USDⓈ-M** only (hourly bars).
+Static chart: **SOL/USDT** **spot** vs **USDⓈ-M perpetual** hourly closes on **Binance**, plus **funding rate** (% per 8h interval, right axis).
 
 ```powershell
 python scripts/build_sol_perp_chart_data.py
