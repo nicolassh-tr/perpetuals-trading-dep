@@ -13,8 +13,9 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    # Refresh Binance OHLCV (~4×/day UTC). Remove this block for push-only updates.
-    - cron: "35 6,12,18,0 * * *"
+    # Refresh Binance OHLCV every 2 hours UTC. GitHub runners may get HTTP 451
+    # from Binance (geo-blocked), so more frequent runs improve odds of a fresh hit.
+    - cron: "35 */2 * * *"
 
 permissions:
   contents: read
