@@ -189,7 +189,7 @@
   </header>
 
   <h1 class="page-title">BTC · ETH · XRP · ADA · SOL</h1>
-  <p class="global-meta" id="globalMeta">Loading <code>data.json</code>…</p>
+  <p class="global-meta" id="globalMeta">Fetching live data from Binance…</p>
   <div id="err" class="err" style="display:none"></div>
   <div id="chartsRoot"></div>
   <div class="refresh-bar" id="refreshBar">
@@ -199,6 +199,174 @@
 
   <script>
     const DISPLAY_ORDER = ["BTC", "ETH", "XRP", "ADA", "SOL"];
+
+    /* ── Live Binance fetch ── */
+    const BINANCE_FAPI = "https://fapi.binance.com";
+    const BINANCE_SPOT = "https://api.binance.com";
+    const LIVE_ASSETS = [
+      { id: "BTC", perp: "BTCUSDT", spot: "BTCUSDT", symPerp: "BTC/USDT:USDT", symSpot: "BTC/USDT" },
+      { id: "ETH", perp: "ETHUSDT", spot: "ETHUSDT", symPerp: "ETH/USDT:USDT", symSpot: "ETH/USDT" },
+      { id: "XRP", perp: "XRPUSDT", spot: "XRPUSDT", symPerp: "XRP/USDT:USDT", symSpot: "XRP/USDT" },
+      { id: "ADA", perp: "ADAUSDT", spot: "ADAUSDT", symPerp: "ADA/USDT:USDT", symSpot: "ADA/USDT" },
+      { id: "SOL", perp: "SOLUSDT", spot: "SOLUSDT", symPerp: "SOL/USDT:USDT", symSpot: "SOL/USDT" },
+    ];
+    const LIVE_WINDOW_DAYS = 2;
+    const LIVE_NOTIONAL = 10000;
+    const KLINE_LIMIT = 1500;
+
+    async function fetchKlines(base, endpoint, symbol, interval, startMs, endMs) {
+      const byTs = new Map();
+      let cursor = startMs;
+      for (let i = 0; i < 32; i++) {
+        const url = base + endpoint + "?symbol=" + symbol + "&interval=" + interval +
+          "&startTime=" + cursor + "&endTime=" + endMs + "&limit=" + KLINE_LIMIT;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(symbol + " klines HTTP " + res.status);
+        const batch = await res.json();
+        if (!batch.length) break;
+        for (const c of batch) {
+          if (c[0] >= startMs && c[0] <= endMs) byTs.set(c[0], parseFloat(c[4]));
+        }
+        const lastTs = batch[batch.length - 1][0];
+        cursor = lastTs + 60000;
+        if (lastTs >= endMs || batch.length < KLINE_LIMIT) break;
+      }
+      return byTs;
+    }
+
+    async function fetchFunding(symbol, startMs, endMs) {
+      const out = [];
+      let cursor = startMs;
+      for (let i = 0; i < 10; i++) {
+        const url = BINANCE_FAPI + "/fapi/v1/fundingRate?symbol=" + symbol +
+          "&startTime=" + cursor + "&endTime=" + endMs + "&limit=1000";
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(symbol + " funding HTTP " + res.status);
+        const batch = await res.json();
+        if (!batch.length) break;
+        for (const r of batch) {
+          out.push({ timestamp: r.fundingTime, fundingRate: parseFloat(r.fundingRate),
+            datetime: new Date(r.fundingTime).toISOString() });
+        }
+        cursor = batch[batch.length - 1].fundingTime + 1;
+        if (batch.length < 1000) break;
+      }
+      return out.sort((a, b) => a.timestamp - b.timestamp);
+    }
+
+    function forwardFill(barTs, fundingRows) {
+      const events = fundingRows.map(r => [r.timestamp, r.fundingRate]).sort((a, b) => a[0] - b[0]);
+      if (!events.length) return barTs.map(() => null);
+      const out = [];
+      let idx = 0, cur = null;
+      for (const ts of barTs) {
+        while (idx < events.length && events[idx][0] <= ts) { cur = events[idx][1]; idx++; }
+        out.push(cur);
+      }
+      return out;
+    }
+
+    async function buildAssetLive(def, startMs, endMs) {
+      const fundingSince = startMs - 30 * 24 * 3600000;
+      const [perpMap, spotMap, fundingRaw] = await Promise.all([
+        fetchKlines(BINANCE_FAPI, "/fapi/v1/klines", def.perp, "1m", startMs, endMs),
+        fetchKlines(BINANCE_SPOT, "/api/v3/klines", def.spot, "1m", startMs, endMs),
+        fetchFunding(def.perp, fundingSince, endMs),
+      ]);
+
+      const barTs = [...perpMap.keys()].sort((a, b) => a - b);
+      const fundingPerBar = forwardFill(barTs, fundingRaw);
+      const series = [];
+      for (let i = 0; i < barTs.length; i++) {
+        const ts = barTs[i];
+        const sc = spotMap.get(ts);
+        if (sc == null) continue;
+        series.push({ ts, perp: perpMap.get(ts), spot: sc, funding_rate: fundingPerBar[i] });
+      }
+
+      const frSamples = series.filter(r => r.funding_rate != null).map(r => r.funding_rate);
+      const avg8h = frSamples.length ? frSamples.reduce((a, b) => a + b, 0) / frSamples.length : null;
+      const dailyDec = avg8h != null ? avg8h * 3 : null;
+      const overnightBps = dailyDec != null ? dailyDec * 10000 : null;
+      const lastFr = fundingRaw.length ? fundingRaw[fundingRaw.length - 1] : null;
+
+      const windowFunding = fundingRaw.filter(r => r.timestamp >= startMs && r.timestamp <= endMs);
+      const nSet = windowFunding.length;
+      let cumL = 0, cumS = 0;
+      const settlements = windowFunding.map(r => {
+        const lc = r.fundingRate * LIVE_NOTIONAL, sc = -r.fundingRate * LIVE_NOTIONAL;
+        cumL -= lc; cumS -= sc;
+        return { ts: r.timestamp, dt: r.datetime, rate: r.fundingRate,
+          long_cost: +lc.toFixed(4), short_cost: +sc.toFixed(4),
+          cum_long_pnl: +cumL.toFixed(4), cum_short_pnl: +cumS.toFixed(4) };
+      });
+
+      const posRates = windowFunding.filter(r => r.fundingRate > 0);
+      const pctPos = nSet ? +(posRates.length / nSet * 100).toFixed(1) : null;
+      const annF = 3 * 365;
+      const annL = avg8h != null ? +(avg8h * annF * 100).toFixed(2) : null;
+      const annS = avg8h != null ? +(-avg8h * annF * 100).toFixed(2) : null;
+
+      const cut24 = endMs - 86400000;
+      const h24ev = windowFunding.filter(r => r.timestamp >= cut24);
+      const h24sum = h24ev.reduce((a, r) => a + r.fundingRate, 0);
+
+      return {
+        id: def.id, symbol_perp: def.symPerp, symbol_spot: def.symSpot,
+        count: series.length, series,
+        latest_funding_rate: lastFr ? lastFr.fundingRate : null,
+        latest_funding_time: lastFr ? lastFr.datetime : null,
+        avg_funding_rate_8h: avg8h,
+        binance_daily_funding_decimal_approx: dailyDec,
+        etoro_overnight_fee_bps_approx: overnightBps,
+        per_direction: {
+          notional_usd: LIVE_NOTIONAL, n_settlements: nSet,
+          pct_positive_funding: pctPos,
+          last_24h: {
+            n_settlements: h24ev.length,
+            long_overnight_bps: +(h24sum * 10000).toFixed(2),
+            short_overnight_bps: +(-h24sum * 10000).toFixed(2),
+            settlements: h24ev.map(e => ({ dt: e.datetime, rate: e.fundingRate,
+              rate_bps: +(e.fundingRate * 10000).toFixed(4) })),
+          },
+          long: {
+            label: "Long holder",
+            total_funding_cost_usd: +settlements.reduce((a, s) => a + s.long_cost, 0).toFixed(4),
+            cumulative_funding_pnl_usd: +cumL.toFixed(4),
+            avg_daily_cost_bps: avg8h != null ? +(avg8h * 3 * 10000).toFixed(2) : null,
+            annualized_cost_pct: annL,
+          },
+          short: {
+            label: "Short holder",
+            total_funding_cost_usd: +settlements.reduce((a, s) => a + s.short_cost, 0).toFixed(4),
+            cumulative_funding_pnl_usd: +cumS.toFixed(4),
+            avg_daily_cost_bps: avg8h != null ? +(-avg8h * 3 * 10000).toFixed(2) : null,
+            annualized_cost_pct: annS,
+          },
+          settlements,
+        },
+      };
+    }
+
+    async function fetchLiveData(statusEl) {
+      const endMs = Date.now();
+      const startMs = endMs - LIVE_WINDOW_DAYS * 86400000;
+      const assets = [];
+      for (let i = 0; i < LIVE_ASSETS.length; i += 2) {
+        const batch = LIVE_ASSETS.slice(i, i + 2);
+        if (statusEl) statusEl.textContent = "Fetching " + batch.map(b => b.id).join(", ") + "…";
+        const results = await Promise.all(batch.map(d => buildAssetLive(d, startMs, endMs)));
+        assets.push(...results);
+      }
+      return {
+        generated_at: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
+        timeframe: "1m", window_days: LIVE_WINDOW_DAYS,
+        venues: { perp: "binance_usdm", spot: "binance" },
+        source: "live",
+        etoro_overnight_fee_bps_note: "Illustrative only: mean Binance 8h funding × 3, as bps/day — not eToro pricing.",
+        assets,
+      };
+    }
 
     /* Strong contrast on light green panels */
     const PERP_COLOR = "#b45309";
@@ -615,19 +783,25 @@
       const errBox = document.getElementById("err");
       const root = document.getElementById("chartsRoot");
       let data;
+      let source = "live";
+
       try {
-        const res = await fetch("data.json", { cache: "no-store" });
-        if (!res.ok) {
-          throw new Error(
-            "HTTP " + res.status + " — run: python scripts/build_sol_perp_chart_data.py"
-          );
+        globalMeta.textContent = "Fetching live data from Binance…";
+        data = await fetchLiveData(globalMeta);
+      } catch (liveErr) {
+        source = "fallback";
+        console.warn("Live Binance fetch failed, falling back to data.json:", liveErr);
+        globalMeta.textContent = "Live fetch failed — loading cached data.json…";
+        try {
+          const res = await fetch("data.json", { cache: "no-store" });
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          data = await res.json();
+        } catch (e) {
+          errBox.style.display = "block";
+          errBox.textContent = "Live Binance failed (" + liveErr.message + ") and data.json also unavailable (" + e.message + ")";
+          globalMeta.textContent = "Could not load data";
+          return;
         }
-        data = await res.json();
-      } catch (e) {
-        errBox.style.display = "block";
-        errBox.textContent = String(e.message || e);
-        globalMeta.textContent = "Could not load data.json";
-        return;
       }
 
       const raw = normalizeAssets(data);
@@ -645,8 +819,11 @@
       const wd =
         data.window_days != null ? data.window_days + "d" : "";
       const note = data.etoro_overnight_fee_bps_note || "";
+      const srcLabel = source === "live"
+        ? '<span style="color:#15803d;font-weight:600">LIVE from Binance</span>'
+        : '<span style="color:#b45309;font-weight:600">cached data.json</span>';
       globalMeta.innerHTML =
-        "<code>" +
+        srcLabel + " · <code>" +
         tf +
         "</code>" +
         (wd ? " · " + wd + " window" : "") +
