@@ -144,6 +144,33 @@
       width: 100%;
       margin-top: 0.75rem;
     }
+    .refresh-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.35rem 1rem;
+      background: rgba(27, 67, 50, 0.92);
+      color: #d8f0dc;
+      font-size: 0.75rem;
+      font-family: system-ui, sans-serif;
+      z-index: 999;
+      backdrop-filter: blur(4px);
+    }
+    .refresh-bar button {
+      background: rgba(255,255,255,0.18);
+      color: #d8f0dc;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 4px;
+      padding: 0.15rem 0.55rem;
+      font-size: 0.72rem;
+      cursor: pointer;
+    }
+    .refresh-bar button:hover { background: rgba(255,255,255,0.3); }
   </style>
 </head>
 <body>
@@ -162,6 +189,10 @@
   <p class="global-meta" id="globalMeta">Loading <code>data.json</code>…</p>
   <div id="err" class="err" style="display:none"></div>
   <div id="chartsRoot"></div>
+  <div class="refresh-bar" id="refreshBar">
+    <span id="refreshStatus">Next refresh in 10:00</span>
+    <button id="refreshNow">Refresh now</button>
+  </div>
 
   <script>
     const DISPLAY_ORDER = ["BTC", "ETH", "XRP", "ADA", "SOL"];
@@ -566,6 +597,16 @@
       });
     }
 
+    const REFRESH_INTERVAL_MS = 10 * 60 * 1000;
+    let activeCharts = [];
+    let refreshDeadline = Date.now() + REFRESH_INTERVAL_MS;
+    let countdownTimer = null;
+
+    function destroyCharts() {
+      activeCharts.forEach((c) => { try { c.destroy(); } catch (_) {} });
+      activeCharts = [];
+    }
+
     async function load() {
       const globalMeta = document.getElementById("globalMeta");
       const errBox = document.getElementById("err");
@@ -595,6 +636,8 @@
         return;
       }
 
+      errBox.style.display = "none";
+
       const tf = data.timeframe || "";
       const wd =
         data.window_days != null ? data.window_days + "d" : "";
@@ -611,8 +654,8 @@
           ? "<br><span style=\"font-size:0.8rem\">" + note + "</span>"
           : "");
 
+      destroyCharts();
       root.innerHTML = "";
-      const charts = [];
 
       assets.forEach((asset) => {
         const section = document.createElement("section");
@@ -643,22 +686,43 @@
           fundBox.appendChild(fundCanvas);
           section.appendChild(fundBox);
           const fc = buildFundingPnlChart(fundCanvas, asset);
-          if (fc) charts.push(fc);
+          if (fc) activeCharts.push(fc);
         }
 
         root.appendChild(section);
-        charts.push(buildChart(canvas, data, asset));
+        activeCharts.push(buildChart(canvas, data, asset));
       });
-
-      window.addEventListener(
-        "beforeunload",
-        () => {
-          charts.forEach((c) => c.destroy());
-        },
-        { once: true }
-      );
     }
-    load();
+
+    function updateCountdown() {
+      const remaining = Math.max(0, refreshDeadline - Date.now());
+      const mins = Math.floor(remaining / 60000);
+      const secs = Math.floor((remaining % 60000) / 1000);
+      const pad = secs < 10 ? "0" : "";
+      document.getElementById("refreshStatus").textContent =
+        "Next refresh in " + mins + ":" + pad + secs;
+    }
+
+    function scheduleRefresh() {
+      refreshDeadline = Date.now() + REFRESH_INTERVAL_MS;
+      if (countdownTimer) clearInterval(countdownTimer);
+      countdownTimer = setInterval(updateCountdown, 1000);
+      updateCountdown();
+    }
+
+    async function refreshNow() {
+      document.getElementById("refreshStatus").textContent = "Refreshing…";
+      await load();
+      scheduleRefresh();
+    }
+
+    document.getElementById("refreshNow").addEventListener("click", refreshNow);
+
+    setInterval(refreshNow, REFRESH_INTERVAL_MS);
+
+    window.addEventListener("beforeunload", destroyCharts, { once: true });
+
+    load().then(scheduleRefresh);
   </script>
 </body>
 </html>
