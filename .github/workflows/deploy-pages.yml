@@ -60,6 +60,14 @@ jobs:
           cp sol-perp/index.html _site/
           cp sol-perp/data.json _site/
           cp sol-perp/etoro-logo.svg _site/
+      - name: Password-protect HTML
+        env:
+          REPORT_USER: ${{ secrets.REPORT_USER }}
+          REPORT_PASS: ${{ secrets.REPORT_PASS }}
+        run: |
+          pip install cryptography
+          python scripts/protect_html.py _site/index.html _site/index.html \
+            -u "$REPORT_USER" -p "$REPORT_PASS" -t "SOL Perpetuals vs eToro"
           echo "## Pages artifact" >> "$GITHUB_STEP_SUMMARY"
           ls -la _site >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
