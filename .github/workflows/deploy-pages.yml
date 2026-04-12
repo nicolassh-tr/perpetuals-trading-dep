@@ -66,6 +66,10 @@ jobs:
           REPORT_PASS: ${{ secrets.REPORT_PASS }}
         run: |
           pip install cryptography
+          if [ -z "$REPORT_USER" ] || [ -z "$REPORT_PASS" ]; then
+            echo "::error::REPORT_USER and REPORT_PASS secrets must be set"
+            exit 1
+          fi
           python scripts/protect_html.py _site/index.html _site/index.html \
             -u "$REPORT_USER" -p "$REPORT_PASS" -t "SOL Perpetuals vs eToro"
           echo "## Pages artifact" >> "$GITHUB_STEP_SUMMARY"
